@@ -13,6 +13,17 @@ export interface RegisterRequest {
   password: string;
 }
 
+export interface OtpVerificationRequest {
+  otp: string;
+  identifier: string;
+  verificationId: string;
+}
+
+export interface ResendOtpRequest {
+  identifier: string;
+  type: 'BUYER_EMAIL_OTP';
+}
+
 // Auth API response types
 export interface LoginSuccessResponse {
   status: number;
@@ -29,6 +40,30 @@ export interface LoginSuccessResponse {
 }
 
 export interface RegisterSuccessResponse {
+  status: number;
+  error: boolean;
+  message: string;
+  data?: {
+    verificationId: string;
+    identifier: string;
+  };
+}
+
+export interface OtpVerificationResponse {
+  status: number;
+  error: boolean;
+  message: string;
+  data?: {
+    buyerId: string;
+    firstName: string;
+    lastName: string;
+    emailAddress: string;
+    phoneNumber: string | null;
+    token: string;
+  };
+}
+
+export interface ResendOtpResponse {
   status: number;
   error: boolean;
   message: string;
@@ -55,6 +90,16 @@ export const authApi = {
   // Register endpoint
   register: async (userData: RegisterRequest): Promise<RegisterSuccessResponse> => {
     return apiClient.post<RegisterSuccessResponse>('/buyer/signup', userData);
+  },
+
+  // OTP verification endpoint
+  verifyOtp: async (otpData: OtpVerificationRequest): Promise<OtpVerificationResponse> => {
+    return apiClient.post<OtpVerificationResponse>('/buyer/otp-verification', otpData);
+  },
+
+  // Resend OTP endpoint
+  resendOtp: async (resendData: ResendOtpRequest): Promise<ResendOtpResponse> => {
+    return apiClient.post<ResendOtpResponse>('/buyer/resend-otp', resendData);
   },
 
   // Logout (if needed for server-side logout)

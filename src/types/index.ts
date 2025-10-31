@@ -255,6 +255,12 @@ export interface User {
   updatedAt?: string;
 }
 
+// Verification types
+export interface PendingVerification {
+  identifier: string;
+  verificationId: string;
+}
+
 // Profile-specific types
 export interface UserProfile extends User {
   addresses: UserAddress[];

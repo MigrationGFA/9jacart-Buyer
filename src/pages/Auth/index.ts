@@ -1,0 +1,4 @@
+export { default as LoginPage } from './LoginPage';
+export { default as RegisterPage } from './RegisterPage';
+export { default as RegistrationSuccessPage } from './RegistrationSuccessPage';
+export { default as VerifyEmailPage } from './VerifyEmailPage';

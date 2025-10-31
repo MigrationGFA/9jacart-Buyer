@@ -20,8 +20,8 @@ const LoginPage: React.FC = () => {
   // Check for success messages from URL params
   React.useEffect(() => {
     const message = searchParams.get('message');
-    if (message === 'registration-success') {
-      setSuccessMessage('Registration successful! Please check your email to verify your account, then login.');
+    if (message === 'verification-success') {
+      setSuccessMessage('Email verified successfully! You can now sign in to your account.');
     }
   }, [searchParams]);
 

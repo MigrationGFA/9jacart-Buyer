@@ -173,8 +173,7 @@ import AccountPage from "../pages/Account/AccountPage";
 import WishlistPage from "../pages/Account/WishlistPage";
 
 // Auth pages
-import LoginPage from "../pages/Auth/LoginPage";
-import RegisterPage from "../pages/Auth/RegisterPage";
+import { LoginPage, RegisterPage, RegistrationSuccessPage, VerifyEmailPage } from "../pages/Auth";
 
 // Support pages
 import ContactPage from "../pages/Support/ContactPage";
@@ -315,7 +314,7 @@ const router = createBrowserRouter([
       },
       // Category and search routes
       {
-        path: "category/:category",
+        path: "category/:categoryId",
         element: <CategoryPage />,
       },
       {
@@ -346,6 +345,14 @@ const router = createBrowserRouter([
       {
         path: "register",
         element: <RegisterPage />,
+      },
+      {
+        path: "registration-success",
+        element: <RegistrationSuccessPage />,
+      },
+      {
+        path: "verify-email",
+        element: <VerifyEmailPage />,
       },
     ],
   },

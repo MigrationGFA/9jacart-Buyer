@@ -72,7 +72,7 @@ const CategoriesSidebar: React.FC<CategoriesSidebarProps> = ({
         toggleCategory(category.id);
       } else {
         // No subcategories - navigate directly
-        navigate(`/category/${category.slug}`);
+        navigate(`/category/${category.id}`);
       }
     } else if (category.level === 2) {
       // Level 2 categories (subcategories) - open modal
@@ -85,7 +85,7 @@ const CategoriesSidebar: React.FC<CategoriesSidebarProps> = ({
         });
       } else {
         // Fallback to direct navigation if no options defined
-        navigate(`/category/${category.slug}`);
+        navigate(`/category/${category.id}`);
       }
     }
   };
@@ -157,21 +157,32 @@ const CategoriesSidebar: React.FC<CategoriesSidebarProps> = ({
       {/* Mobile Categories - Horizontal scroll */}
       <div className="lg:hidden mb-3 sm:mb-4 -mx-4 px-4">
         <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-hide">
-          {mainCategories.slice(0, 8).map((category) => {
-            const subcategories = getSubcategories(category.id);
-            const hasSubcategories = subcategories.length > 0;
+          {mainCategories.length > 0 ? (
+            mainCategories.slice(0, 8).map((category) => {
+              const subcategories = getSubcategories(category.id);
+              const hasSubcategories = subcategories.length > 0;
 
-            return (
-              <button
-                key={`mobile-${category.id}`}
-                onClick={() => handleCategoryClick(category)}
-                className="flex-shrink-0 px-3 sm:px-4 py-2 bg-white border border-gray-200 rounded-full text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-primary hover:text-primary transition-colors whitespace-nowrap"
-              >
-                {category.name}
-                {hasSubcategories && <span className="ml-1">›</span>}
-              </button>
-            );
-          })}
+              return (
+                <button
+                  key={`mobile-${category.id}`}
+                  onClick={() => handleCategoryClick(category)}
+                  className="flex-shrink-0 px-3 sm:px-4 py-2 bg-white border border-gray-200 rounded-full text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-primary hover:text-primary transition-colors whitespace-nowrap"
+                >
+                  {category.name}
+                  {hasSubcategories && <span className="ml-1">›</span>}
+                </button>
+              );
+            })
+          ) : (
+            // Loading skeleton for mobile categories
+            Array.from({ length: 6 }).map((_, index) => (
+              <div
+                key={`skeleton-${index}`}
+                className="flex-shrink-0 px-4 py-2 bg-gray-100 rounded-full animate-pulse"
+                style={{ width: `${60 + Math.random() * 40}px`, height: '32px' }}
+              />
+            ))
+          )}
         </div>
       </div>
 

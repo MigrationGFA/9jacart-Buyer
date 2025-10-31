@@ -47,8 +47,8 @@ const RegisterPage: React.FC = () => {
         password: formData.password,
       });
       
-      // Registration successful - redirect to login with success message
-      navigate('/auth/login?message=registration-success');
+      // Registration successful - redirect to registration success page
+      navigate('/auth/registration-success');
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Registration failed. Please try again.');
     }

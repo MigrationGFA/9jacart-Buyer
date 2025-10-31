@@ -2,6 +2,14 @@ import { useState, useEffect, useMemo } from 'react';
 import { mockApi, mockProducts } from '../data/mockData';
 import type { Product, ProductSummary } from '../types';
 
+/**
+ * @deprecated These hooks use mock data and will be removed in a future version.
+ * Use the real API hooks from './api/useRealProducts' instead:
+ * - useRealProductsList() instead of useProductList()
+ * - useRealProduct() instead of useProduct()
+ * - useRealProductsByCategory() for category-specific products
+ */
+
 export const useProductList = () => {
   const [products, setProducts] = useState<ProductSummary[]>([]);
   const [loading, setLoading] = useState(true);

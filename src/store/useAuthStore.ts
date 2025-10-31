@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { User } from "../types";
-import { authApi, type LoginRequest, type RegisterRequest } from "../api/auth";
+import { authApi, type LoginRequest, type RegisterRequest, type OtpVerificationRequest, type ResendOtpRequest } from "../api/auth";
 import { apiErrorUtils } from "../utils/api-errors";
 
 interface AuthStore {
@@ -9,13 +9,21 @@ interface AuthStore {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  // Verification state
+  pendingVerification: {
+    identifier: string;
+    verificationId: string;
+  } | null;
   login: (email: string, password: string) => Promise<void>;
   register: (
     userData: Omit<User, "id" | "token"> & { password: string }
-  ) => Promise<void>;
+  ) => Promise<{ verificationId: string; identifier: string }>;
+  verifyEmail: (otp: string) => Promise<void>;
+  resendOtp: () => Promise<void>;
   logout: () => void;
   updateProfile: (userData: Partial<User>) => void;
   checkAuthStatus: () => void;
+  clearPendingVerification: () => void;
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -25,6 +33,7 @@ export const useAuthStore = create<AuthStore>()(
       token: null,
       isAuthenticated: false,
       isLoading: false,
+      pendingVerification: null,
 
       login: async (email, password) => {
         set({ isLoading: true });
@@ -72,13 +81,93 @@ export const useAuthStore = create<AuthStore>()(
             password: userData.password,
           };
 
-          await authApi.register(registerData);
+          const response = await authApi.register(registerData);
 
-          // Registration successful - don't auto-login, user needs to verify email
+          // Store verification data for OTP verification
+          const verificationData = {
+            identifier: userData.email,
+            verificationId: response.data?.verificationId || '',
+          };
+
+          set({ 
+            isLoading: false,
+            pendingVerification: verificationData,
+          });
+
+          return verificationData;
+        } catch (error) {
           set({ isLoading: false });
+          // Re-throw with user-friendly message
+          const errorMessage = apiErrorUtils.getErrorMessage(error);
+          throw new Error(errorMessage);
+        }
+      },
 
-          // Note: We don't set user/token here as registration doesn't return them
-          // User will need to login after email verification
+      verifyEmail: async (otp) => {
+        const { pendingVerification } = get();
+        
+        if (!pendingVerification) {
+          throw new Error('No pending verification found');
+        }
+
+        set({ isLoading: true });
+
+        try {
+          const otpData: OtpVerificationRequest = {
+            otp,
+            identifier: pendingVerification.identifier,
+            verificationId: pendingVerification.verificationId,
+          };
+
+          const response = await authApi.verifyOtp(otpData);
+
+          if (response.data) {
+            // Map API response to User interface
+            const user: User = {
+              id: response.data.buyerId,
+              email: response.data.emailAddress,
+              firstName: response.data.firstName,
+              lastName: response.data.lastName,
+              phone: response.data.phoneNumber || undefined,
+              token: response.data.token,
+              isEmailVerified: true,
+            };
+
+            set({
+              user,
+              token: response.data.token,
+              isAuthenticated: true,
+              isLoading: false,
+              pendingVerification: null,
+            });
+          } else {
+            set({ isLoading: false });
+          }
+        } catch (error) {
+          set({ isLoading: false });
+          // Re-throw with user-friendly message
+          const errorMessage = apiErrorUtils.getErrorMessage(error);
+          throw new Error(errorMessage);
+        }
+      },
+
+      resendOtp: async () => {
+        const { pendingVerification } = get();
+        
+        if (!pendingVerification) {
+          throw new Error('No pending verification found');
+        }
+
+        set({ isLoading: true });
+
+        try {
+          const resendData: ResendOtpRequest = {
+            identifier: pendingVerification.identifier,
+            type: 'BUYER_EMAIL_OTP',
+          };
+
+          await authApi.resendOtp(resendData);
+          set({ isLoading: false });
         } catch (error) {
           set({ isLoading: false });
           // Re-throw with user-friendly message
@@ -93,12 +182,17 @@ export const useAuthStore = create<AuthStore>()(
           user: null,
           token: null,
           isAuthenticated: false,
+          pendingVerification: null,
         });
 
         // Optional: Call logout API if needed
         authApi.logout().catch(() => {
           // Ignore logout API errors
         });
+      },
+
+      clearPendingVerification: () => {
+        set({ pendingVerification: null });
       },
 
       updateProfile: (userData) => {
@@ -122,7 +216,7 @@ export const useAuthStore = create<AuthStore>()(
                 get().logout();
               }
             }
-          } catch (error) {
+          } catch {
             // Invalid token, logout
             get().logout();
           }
@@ -136,6 +230,7 @@ export const useAuthStore = create<AuthStore>()(
         user: state.user,
         token: state.token,
         isAuthenticated: state.isAuthenticated,
+        pendingVerification: state.pendingVerification,
       }),
     }
   )

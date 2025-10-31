@@ -1,9 +1,10 @@
 
 
-import React, {} from "react";
+import React from "react";
 import CategoriesSidebar from "./CategoriesSidebar";
 import HeroCarousel, { type CarouselSlide } from "./HeroCarousel";
-import { mockCategories } from "../../data/mockData";
+import { useAllRealCategories } from "../../hooks/api/useRealCategories";
+import { Loading } from "../UI";
 
 const slides: CarouselSlide[] = [
   {
@@ -36,11 +37,26 @@ const slides: CarouselSlide[] = [
 ];
 
 const HeroSection: React.FC = () => {
+  const { categories, loading, error } = useAllRealCategories();
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-6">
       <div className="grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 items-stretch">
-        <CategoriesSidebar categories={mockCategories} />
+        {loading ? (
+          <div className="hidden lg:block lg:col-span-1 border-r border-gray-200 pr-4 lg:pr-6">
+            <div className="sticky top-4 flex items-center justify-center py-8">
+              <Loading size="sm" />
+            </div>
+          </div>
+        ) : error ? (
+          <div className="hidden lg:block lg:col-span-1 border-r border-gray-200 pr-4 lg:pr-6">
+            <div className="sticky top-4 text-center py-8">
+              <p className="text-sm text-gray-500">Categories unavailable</p>
+            </div>
+          </div>
+        ) : (
+          <CategoriesSidebar categories={categories} />
+        )}
         <HeroCarousel slides={slides} />
       </div>
     </div>

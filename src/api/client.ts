@@ -40,8 +40,11 @@ class ApiClient {
   private getBasicAuthHeader(): string {
     // Basic Auth credentials for API access
     const { username, password } = config.api.basicAuth;
+    console.log('🔐 Basic Auth credentials:', { username, password: '***' });
     const credentials = btoa(`${username}:${password}`);
-    return `Basic ${credentials}`;
+    const authHeader = `Basic ${credentials}`;
+    console.log('🔐 Generated Basic Auth header:', authHeader);
+    return authHeader;
   }
 
   private async request<T>(
@@ -58,6 +61,11 @@ class ApiClient {
       },
       ...options,
     };
+
+    // Add timeout to prevent infinite loading
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    config.signal = controller.signal;
 
     // Determine which authentication to use
     if (useBearer) {
@@ -80,11 +88,21 @@ class ApiClient {
     }
 
     try {
-      console.log('API Request:', { url, method: config.method, headers: config.headers });
+      console.log('API Request:', { 
+        url, 
+        method: config.method, 
+        headers: config.headers,
+        body: config.body 
+      });
       
       const response = await fetch(url, config);
+      clearTimeout(timeoutId); // Clear timeout on response
       
-      console.log('API Response:', { status: response.status, statusText: response.statusText });
+      console.log('API Response:', { 
+        status: response.status, 
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries())
+      });
       
       // Parse response
       const data = await response.json();
@@ -102,12 +120,26 @@ class ApiClient {
       console.log('API Success Response:', data);
       return data;
     } catch (error) {
+      clearTimeout(timeoutId); // Clear timeout on error
+      
       if (error instanceof ApiError) {
         throw error;
       }
-      console.error('Network/Parse Error:', error);
-      // Network or parsing error
-      throw new ApiError(0, 'Network error occurred');
+      
+      // Handle specific error types
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          console.error('❌ API Request timeout (30s)');
+          throw new ApiError(408, 'Request timeout - API took too long to respond');
+        }
+        if (error.message.includes('fetch')) {
+          console.error('❌ Network error:', error.message);
+          throw new ApiError(0, 'Network error - Unable to connect to API');
+        }
+      }
+      
+      console.error('❌ Unknown error:', error);
+      throw new ApiError(0, 'Unknown error occurred');
     }
   }
 
@@ -132,6 +164,14 @@ class ApiClient {
     }, useBearer);
   }
 
+  async patch<T>(endpoint: string, data?: unknown, options?: RequestInit, useBearer?: boolean): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'PATCH',
+      body: data ? JSON.stringify(data) : undefined,
+    }, useBearer);
+  }
+
   async delete<T>(endpoint: string, options?: RequestInit, useBearer?: boolean): Promise<T> {
     return this.request<T>(endpoint, { ...options, method: 'DELETE' }, useBearer);
   }
@@ -139,3 +179,24 @@ class ApiClient {
 
 // Create and export the API client instance
 export const apiClient = new ApiClient(API_BASE_URL);
+
+// Debug function to test API connectivity
+export const testApiConnection = async () => {
+  console.log('🧪 Testing API connection...');
+  console.log('🌐 API Base URL:', API_BASE_URL);
+  console.log('🔐 Basic Auth Config:', config.api.basicAuth);
+  
+  try {
+    const response = await apiClient.get('/product/items?page=1&perPage=2', undefined, false);
+    console.log('✅ API connection test successful:', response);
+    return response;
+  } catch (error) {
+    console.error('❌ API connection test failed:', error);
+    throw error;
+  }
+};
+
+// Make it available globally for debugging
+if (typeof window !== 'undefined') {
+  (window as any).testApiConnection = testApiConnection;
+}

@@ -7,6 +7,12 @@ import type {
   User,
 } from "../types";
 
+/**
+ * @deprecated These categories use mock data and will be removed in a future version.
+ * Use the real API categories from './hooks/api/useRealCategories' instead:
+ * - useAllRealCategories() for all categories including services
+ * - useRealCategories() for paginated categories
+ */
 // Mock categories
 export const mockCategories: Category[] = [
   {

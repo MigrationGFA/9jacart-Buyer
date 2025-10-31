@@ -22,8 +22,8 @@ import {
 } from "../../components/UI";
 import { useCartStore } from "../../store/useCartStore";
 import { useWishlistStore } from "../../store/useWishlistStore";
-import { mockProducts, mockApi } from "../../data/mockData";
-import type { Product } from "../../types";
+import { useRealProduct, useRealProductsList } from "../../hooks/api/useRealProducts";
+// import type { Product } from "../../types";
 import { cn } from "../../lib/utils";
 import { ProductCard } from "@/components/Product";
 
@@ -32,9 +32,16 @@ const ProductDetailPage: React.FC = () => {
   const { addItem } = useCartStore();
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isItemInWishlist } = useWishlistStore();
 
-  const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Use real API hook
+  const { product, loading, error } = useRealProduct(id || null);
+  
+  // Get related products from same category
+  const { products: relatedProducts } = useRealProductsList({ 
+    page: 1, 
+    perPage: 4,
+    ...(product?.categoryId && { category: product.categoryId })
+  });
+
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [selectedSize, setSelectedSize] = useState<string>("");
@@ -42,41 +49,24 @@ const ProductDetailPage: React.FC = () => {
   
   const isWishlisted = product ? isItemInWishlist(product.id) : false;
 
-  // Load product data
+  // Set default selections when product loads
   useEffect(() => {
-    const loadProduct = async () => {
-      if (!id) return;
-
-      try {
-        setLoading(true);
-        const productData = await mockApi.getProduct(id);
-        setProduct(productData);
-
-        // Set default selections
-        if (productData.variants) {
-          const colorVariant = productData.variants.find(
-            (v) => v.type === "color"
-          );
-          if (colorVariant && colorVariant.options.length > 0) {
-            setSelectedColor(colorVariant.options[0].id);
-          }
-
-          const sizeVariant = productData.variants.find(
-            (v) => v.type === "size"
-          );
-          if (sizeVariant && sizeVariant.options.length > 0) {
-            setSelectedSize(sizeVariant.options[0].id);
-          }
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load product");
-      } finally {
-        setLoading(false);
+    if (product?.variants) {
+      const colorVariant = product.variants.find(
+        (v) => v.type === "color"
+      );
+      if (colorVariant && colorVariant.options.length > 0) {
+        setSelectedColor(colorVariant.options[0].id);
       }
-    };
 
-    loadProduct();
-  }, [id]);
+      const sizeVariant = product.variants.find(
+        (v) => v.type === "size"
+      );
+      if (sizeVariant && sizeVariant.options.length > 0) {
+        setSelectedSize(sizeVariant.options[0].id);
+      }
+    }
+  }, [product]);
 
   const handleAddToCart = () => {
     if (!product) return;
@@ -102,9 +92,9 @@ const ProductDetailPage: React.FC = () => {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("en-NG", {
       style: "currency",
-      currency: "USD",
+      currency: "NGN",
     }).format(price);
   };
 
@@ -133,9 +123,8 @@ const ProductDetailPage: React.FC = () => {
   }
 
   const breadcrumbItems = [
-    { label: "Categories", href: "/products" },
-    { label: "Gaming", href: "/category/electronics" },
-    { label: product.name, isCurrentPage: true },
+    { label: "Products", href: "/products" },
+    ...(product ? [{ label: product.name, isCurrentPage: true }] : []),
   ];
 
   const colorVariant = product.variants?.find((v) => v.type === "color");
@@ -200,11 +189,11 @@ const ProductDetailPage: React.FC = () => {
               </h1>
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-bold">LP</span>
+                  <span className="text-white text-sm font-bold">9J</span>
                 </div>
                 <div>
-                  <p className="font-medium text-gray-900">La Porsh Footies</p>
-                  <p className="text-sm text-gray-500">Lagos, Nigeria</p>
+                  <p className="font-medium text-gray-900">9jaCart</p>
+                  <p className="text-sm text-gray-500">Nigeria</p>
                 </div>
                 <Badge variant="success" className="ml-2">
                   Verified
@@ -220,8 +209,8 @@ const ProductDetailPage: React.FC = () => {
               <span className="text-sm text-gray-600">
                 ({product.reviews.total} Reviews)
               </span>
-              <Badge variant="success" className="ml-2">
-                In Stock
+              <Badge variant={product.inventory.inStock ? "success" : "destructive"} className="ml-2">
+                {product.inventory.inStock ? "In Stock" : "Out of Stock"}
               </Badge>
             </div>
 
@@ -373,93 +362,27 @@ const ProductDetailPage: React.FC = () => {
         </div>
 
         {/* Related Items */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-4">
-            <div className="w-4 h-8 bg-primary rounded"></div>
-            <h2 className="text-2xl font-bold text-gray-900">Related Item</h2>
+        {relatedProducts.length > 0 && (
+          <div className="space-y-6">
+            <div className="flex items-center gap-4">
+              <div className="w-4 h-8 bg-primary rounded"></div>
+              <h2 className="text-2xl font-bold text-gray-900">Related Items</h2>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {relatedProducts
+                .filter(relatedProduct => relatedProduct.id !== product?.id) // Exclude current product
+                .slice(0, 4)
+                .map((relatedProduct) => (
+                  <ProductCard
+                    key={relatedProduct.id}
+                    product={relatedProduct}
+                    className="group cursor-pointer hover:shadow-lg transition-shadow"
+                  />
+                ))}
+            </div>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {mockProducts.slice(0, 4).map((relatedProduct) => {
-              return (
-                // <Card key={relatedProduct.id} className="group cursor-pointer hover:shadow-lg transition-shadow">
-                //   <CardContent className="p-0">
-                //     <div className="relative">
-                //       {relatedDiscount && (
-                //         <Badge
-                //           variant="destructive"
-                //           className="absolute top-2 left-2 z-10"
-                //         >
-                //           -{relatedDiscount.percentage}%
-                //         </Badge>
-                //       )}
-
-                //       <div className="absolute top-2 right-2 z-10 flex flex-col gap-2">
-                //         <Button size="icon" variant="outline" className="w-8 h-8 bg-white">
-                //           <Heart className="w-4 h-4" />
-                //         </Button>
-                //         <Button size="icon" variant="outline" className="w-8 h-8 bg-white">
-                //           <Eye className="w-4 h-4" />
-                //         </Button>
-                //       </div>
-
-                //       <div className="aspect-square bg-gray-100 overflow-hidden">
-                //         <Image
-                //           src={relatedProduct.images.main}
-                //           alt={relatedProduct.images.alt}
-                //           className="w-full h-full object-contain group-hover:scale-105 transition-transform"
-                //         />
-                //       </div>
-
-                //       <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-80 text-white p-2 transform translate-y-full group-hover:translate-y-0 transition-transform">
-                //         <Button
-                //           variant="ghost"
-                //           className="w-full text-white hover:bg-white hover:text-black"
-                //           onClick={() => addItem(relatedProduct, 1)}
-                //         >
-                //           <ShoppingCart className="w-4 h-4 mr-2" />
-                //           Add To Cart
-                //         </Button>
-                //       </div>
-                //     </div>
-
-                //     <div className="p-4 space-y-2">
-                //       <Link
-                //         to={`/products/${relatedProduct.id}`}
-                //         className="font-medium text-gray-900 hover:text-primary transition-colors line-clamp-2"
-                //       >
-                //         {relatedProduct.name}
-                //       </Link>
-
-                //       <div className="flex items-center gap-2">
-                //         <span className="font-bold text-red-500">
-                //           {formatPrice(relatedPrice)}
-                //         </span>
-                //         {relatedOriginal && (
-                //           <span className="text-gray-500 line-through text-sm">
-                //             {formatPrice(relatedOriginal)}
-                //           </span>
-                //         )}
-                //       </div>
-
-                //       <div className="flex items-center gap-1">
-                //         {renderStars(relatedProduct.reviews.average)}
-                //         <span className="text-sm text-gray-600 ml-1">
-                //           ({relatedProduct.reviews.total})
-                //         </span>
-                //       </div>
-                //     </div>
-                //   </CardContent>
-                // </Card>
-                <ProductCard
-                  key={relatedProduct.id}
-                  product={relatedProduct}
-                  className="group cursor-pointer hover:shadow-lg transition-shadow"
-                />
-              );
-            })}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

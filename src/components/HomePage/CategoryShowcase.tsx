@@ -13,46 +13,83 @@ import {
   Phone,
   Receipt,
   Home,
+  Package,
+  Gamepad2,
+  Utensils,
+  Sparkles,
+  Monitor,
 } from "lucide-react";
 
-import { Button } from "../UI/Button";
-import { mockCategories } from "../../data/mockData";
+import { Button, Loading, Alert } from "../UI";
+import { useAllRealCategories } from "../../hooks/api/useRealCategories";
 import type { Category } from "../../types";
 
-// Icon mapping for categories
-const getCategoryIcon = (categoryId: string) => {
-  const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-    'appliances': Zap,
-    'baby-products': Baby,
-    'devices-accessories': Smartphone,
-    'groceries': ShoppingCart,
-    'health': Heart,
-    'laundry': Shirt,
-    'fashion': Shirt,
+// Icon mapping for categories - enhanced for real API categories
+const getCategoryIcon = (categoryName: string, categoryId?: string) => {
+  const name = categoryName.toLowerCase();
+  
+  // First check by category ID (for services and known categories)
+  const idIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
     'services': Wrench,
     'mobile-topup': Phone,
     'bills': Receipt,
   };
-
-  return iconMap[categoryId] || Home;
+  
+  if (categoryId && idIconMap[categoryId]) {
+    return idIconMap[categoryId];
+  }
+  
+  // Then check by category name keywords
+  const nameIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+    'toys': Gamepad2,
+    'games': Gamepad2,
+    'gaming': Gamepad2,
+    'home': Home,
+    'kitchen': Utensils,
+    'health': Heart,
+    'beauty': Sparkles,
+    'electronics': Monitor,
+    'gadgets': Smartphone,
+    'devices': Smartphone,
+    'men': Shirt,
+    'wear': Shirt,
+    'fashion': Shirt,
+    'clothing': Shirt,
+    'appliances': Zap,
+    'baby': Baby,
+    'groceries': ShoppingCart,
+    'food': ShoppingCart,
+  };
+  
+  // Find matching icon based on category name keywords
+  for (const [keyword, IconComponent] of Object.entries(nameIconMap)) {
+    if (name.includes(keyword)) {
+      return IconComponent;
+    }
+  }
+  
+  // Default fallback icon
+  return Package;
 };
 
-// Transform mock categories to include icons and featured status
+// Transform categories to include icons and featured status
 const transformCategories = (categories: Category[]) => {
   return categories
     .filter(cat => cat.level === 1) // Only show top-level categories
     .map((category, index) => ({
       ...category,
-      icon: getCategoryIcon(category.id),
-      featured: index === 2, // Make the 3rd category (Devices & Accessories) featured
+      icon: getCategoryIcon(category.name, category.id),
+      featured: index === 2, // Make the 3rd category featured
     }));
 };
 
-// Get transformed categories
-const categories = transformCategories(mockCategories);
-
 const CategoryShowcase: React.FC = () => {
+  const { categories: rawCategories, loading, error, refetch } = useAllRealCategories();
   const [currentIndex, setCurrentIndex] = useState(0);
+  
+  // Transform categories to include icons
+  const categories = transformCategories(rawCategories);
+  
   const itemsPerView = 6; // Show 6 items at a time on desktop
   const maxIndex = Math.max(0, categories.length - itemsPerView);
 
@@ -63,6 +100,78 @@ const CategoryShowcase: React.FC = () => {
   const goToNext = () => {
     setCurrentIndex((prev) => Math.min(maxIndex, prev + 1));
   };
+
+  if (loading) {
+    return (
+      <section className="py-8 sm:py-12 lg:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <div className="w-5 h-8 bg-primary rounded-sm"></div>
+              <div>
+                <p className="text-primary font-semibold text-sm mb-1">Categories</p>
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Browse By Category</h2>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-center py-12">
+            <Loading size="lg" />
+            <span className="ml-2 text-muted-foreground">Loading categories...</span>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="py-8 sm:py-12 lg:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <div className="w-5 h-8 bg-primary rounded-sm"></div>
+              <div>
+                <p className="text-primary font-semibold text-sm mb-1">Categories</p>
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Browse By Category</h2>
+              </div>
+            </div>
+          </div>
+          
+          <Alert variant="destructive" className="max-w-md mx-auto">
+            <div className="flex flex-col items-center gap-4">
+              <p>{error}</p>
+              <Button onClick={() => refetch()} variant="outline" size="sm">
+                Try Again
+              </Button>
+            </div>
+          </Alert>
+        </div>
+      </section>
+    );
+  }
+
+  if (categories.length === 0) {
+    return (
+      <section className="py-8 sm:py-12 lg:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <div className="w-5 h-8 bg-primary rounded-sm"></div>
+              <div>
+                <p className="text-primary font-semibold text-sm mb-1">Categories</p>
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Browse By Category</h2>
+              </div>
+            </div>
+          </div>
+          
+          <div className="text-center py-12">
+            <p className="text-gray-500">No categories available at the moment.</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-8 sm:py-12 lg:py-16">
@@ -115,7 +224,7 @@ const CategoryShowcase: React.FC = () => {
                 return (
                   <Link
                     key={category.id}
-                    to={`/category/${category.slug}`}
+                    to={`/category/${category.id}`}
                     className={`flex-shrink-0 w-[calc(100%/6-1rem)] group ${
                       category.featured ? 'order-first' : ''
                     }`}
@@ -158,7 +267,7 @@ const CategoryShowcase: React.FC = () => {
                 return (
                   <Link
                     key={category.id}
-                    to={`/category/${category.slug}`}
+                    to={`/category/${category.id}`}
                     className="flex-shrink-0 group"
                   >
                     <div
@@ -207,6 +316,14 @@ const CategoryShowcase: React.FC = () => {
               />
             )
           )}
+        </div>
+
+        {/* API Status Badge */}
+        <div className="flex justify-center mt-8">
+          <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+            <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+            Live API Data • {categories.length} categories
+          </div>
         </div>
       </div>
     </section>
