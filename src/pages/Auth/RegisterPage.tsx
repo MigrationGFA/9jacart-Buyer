@@ -39,6 +39,32 @@ const RegisterPage: React.FC = () => {
       return;
     }
 
+    const allowedSpecialCharacters = "!@$%&*?";
+    const escapeForRegex = (value: string) => value.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+
+    const passwordRequirements = [
+      { regex: /[A-Z]/, message: 'an uppercase letter' },
+      { regex: /[a-z]/, message: 'a lowercase letter' },
+      { regex: /[0-9]/, message: 'a number' },
+      { regex: new RegExp(`[${escapeForRegex(allowedSpecialCharacters)}]`), message: `a special character (${allowedSpecialCharacters.split('').join(' ')})` },
+    ];
+
+    const missingRequirements = passwordRequirements
+      .filter(req => !req.regex.test(formData.password))
+      .map(req => req.message);
+
+    if (missingRequirements.length > 0) {
+      const missingMessage =
+        missingRequirements.length === 1
+          ? missingRequirements[0]
+          : `${missingRequirements.slice(0, -1).join(', ')} and ${missingRequirements[missingRequirements.length - 1]}`;
+
+      setError(
+        `Password must include upper & lowercase letters, a number, and a special character. Missing ${missingMessage}.`
+      );
+      return;
+    }
+
     try {
       await register({
         firstName: formData.firstName,

@@ -37,10 +37,9 @@ const CategoriesSidebar: React.FC<CategoriesSidebarProps> = ({ categories }) => 
     options: [],
   });
 
-  // Filter main categories (level 1) - show all, but limit visible height to ~9 items
+  // Filter main categories (level 1)
   const allMainCategories = categories.filter((cat) => cat.level === 1);
   const mainCategories = allMainCategories;
-  const hasMoreCategories = allMainCategories.length > 9;
 
   // Get subcategories for a given parent
   const getSubcategories = (parentId: string) => {
@@ -142,10 +141,10 @@ const CategoriesSidebar: React.FC<CategoriesSidebarProps> = ({ categories }) => 
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:block lg:col-span-1 border-r border-gray-200 pr-4 lg:pr-6">
+      <aside className="hidden lg:block lg:col-span-1 border-r border-gray-200">
         <div className="sticky top-4">
-          <div className={`${hasMoreCategories ? 'max-h-[600px] overflow-y-auto scrollbar-hide' : ''}`}>
-            <ul className="space-y-2 lg:space-y-3">
+          <div className="h-[240px] sm:h-[300px] md:h-[360px] lg:h-[420px] overflow-y-auto scroll-smooth scrollbar-thin">
+            <ul className="space-y-2 lg:space-y-3 pr-4 lg:pr-6">
               {mainCategories.map((category) => renderCategoryItem(category))}
             </ul>
           </div>
