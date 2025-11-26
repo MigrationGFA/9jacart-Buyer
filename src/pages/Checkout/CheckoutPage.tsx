@@ -16,6 +16,7 @@ import {
   CardContent,
   Breadcrumb,
   Alert,
+  Loading,
 } from "../../components/UI";
 import {
   CheckoutSuccess,
@@ -51,7 +52,7 @@ interface PaymentMethod {
 const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
 
-  const { items, totalPrice, clearAllItems } = useCart();
+  const { items, totalPrice, clearAllItems, isLoading } = useCart();
   const { isAuthenticated, user } = useAuthStore();
   const { profile, fetchProfile, getDefaultAddress, getAddresses, addAddress } =
     useProfile();
@@ -73,6 +74,7 @@ const CheckoutPage: React.FC = () => {
     null
   );
   const [isAddingNewAddress, setIsAddingNewAddress] = useState(false);
+  const [addressSaved, setAddressSaved] = useState(false);
 
   // Coupon state
   const [couponCode, setCouponCode] = useState("");
@@ -100,10 +102,16 @@ const CheckoutPage: React.FC = () => {
 
   // Set up default address and pre-fill form
   useEffect(() => {
+    // Don't run this effect if user is actively adding a new address
+    // This prevents the form from closing when profile refreshes after saving
+    if (isAddingNewAddress) return;
+
     if (isAuthenticated && profile) {
       const defaultAddress = getDefaultAddress();
 
-      if (defaultAddress) {
+      // Only set default address if no address is currently selected
+      // This prevents resetting when user manually selects a different address
+      if (defaultAddress && !showAddressForm && !showAddressSelector && !selectedAddress) {
         setSelectedAddress(defaultAddress);
         // Auto-fill form with default address
         setBillingDetails((prev) => ({
@@ -118,8 +126,8 @@ const CheckoutPage: React.FC = () => {
           companyName: "",
         }));
         setShowAddressForm(false); // Hide form since we have default address
-      } else {
-        // No default address, show form
+      } else if (!defaultAddress && !showAddressForm && !showAddressSelector && !selectedAddress) {
+        // No default address, show form (only if no address is selected)
         setShowAddressForm(true);
         setBillingDetails((prev) => ({
           ...prev,
@@ -129,11 +137,11 @@ const CheckoutPage: React.FC = () => {
           phoneNumber: user?.phone || "",
         }));
       }
-    } else if (!isAuthenticated && checkoutAsGuest) {
+    } else if (!isAuthenticated && checkoutAsGuest && !showAddressForm) {
       // Guest checkout - always show form
       setShowAddressForm(true);
     }
-  }, [isAuthenticated, profile, user, checkoutAsGuest, getDefaultAddress]);
+  }, [isAuthenticated, profile, user, checkoutAsGuest, getDefaultAddress, isAddingNewAddress, showAddressForm, showAddressSelector, selectedAddress]);
 
   const paymentMethods: PaymentMethod[] = [
     {
@@ -192,6 +200,7 @@ const CheckoutPage: React.FC = () => {
     setIsAddingNewAddress(true);
     setShowAddressSelector(false);
     setShowAddressForm(true);
+    setAddressSaved(false); // Reset saved state
     // Clear form for new address
     setBillingDetails((prev) => ({
       ...prev,
@@ -205,6 +214,12 @@ const CheckoutPage: React.FC = () => {
   const handleSaveNewAddress = async () => {
     if (!isAuthenticated) return;
 
+    // Validate required fields before saving
+    if (!billingDetails.streetAddress || !billingDetails.townCity) {
+      alert("Please fill in the required address fields (Street Address and Town/City)");
+      return;
+    }
+
     try {
       const newAddress: Omit<UserAddress, "id" | "createdAt" | "updatedAt"> = {
         streetAddress: billingDetails.streetAddress,
@@ -212,22 +227,27 @@ const CheckoutPage: React.FC = () => {
         state: "Lagos", // Default for now - could be made dynamic
         zipCode: "100001", // Default for now - could be made dynamic
         country: "Nigeria",
-        isDefault: saveInfo, // Use saveInfo checkbox to set as default
+        isDefault: false, // Save as regular address (not default)
       };
 
       await addAddress(newAddress);
-      setIsAddingNewAddress(false);
-      setShowAddressForm(false);
-
-      // Refresh addresses and select the new one
-      const addresses = getAddresses();
-      const newAddressFromList = addresses[addresses.length - 1]; // Assuming it's the last one
-      if (newAddressFromList) {
-        setSelectedAddress(newAddressFromList);
-      }
+      // Address saved successfully - keep form open for checkout
+      setAddressSaved(true);
+      
+      // Reset the saved indicator after 3 seconds
+      setTimeout(() => {
+        setAddressSaved(false);
+      }, 3000);
     } catch (error) {
       console.error("Failed to save address:", error);
+      alert("Failed to save address. Please try again.");
     }
+  };
+
+  const handleChooseExistingAddress = () => {
+    setShowAddressSelector(true);
+    setShowAddressForm(false);
+    setIsAddingNewAddress(false);
   };
 
   // Coupon handling functions
@@ -410,7 +430,22 @@ const CheckoutPage: React.FC = () => {
     { label: "CheckOut", isCurrentPage: true },
   ];
 
-  if (items.length === 0) {
+  // Show loading state while cart is being loaded
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Breadcrumb items={breadcrumbItems} className="mb-8" />
+          <div className="flex items-center justify-center py-16">
+            <Loading size="lg" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show empty cart only if not loading and items are actually empty
+  if (!isLoading && items.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -764,28 +799,17 @@ const CheckoutPage: React.FC = () => {
 
                     {/* Save address options */}
                     {isAuthenticated &&
-                      (showAddressForm || isAddingNewAddress) && (
-                        <div className="flex items-center justify-between pt-4">
-                          <div className="flex items-center space-x-2">
-                            <input
-                              id="save-address"
-                              name="save-address"
-                              type="checkbox"
-                              checked={saveInfo}
-                              onChange={(e) => setSaveInfo(e.target.checked)}
-                              className="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary focus:ring-2"
-                            />
-                            <label
-                              htmlFor="save-address"
-                              className="text-sm text-gray-700"
-                            >
-                              {isAddingNewAddress
-                                ? "Save as new address"
-                                : "Update my saved address"}
-                            </label>
-                          </div>
-
-                          {isAddingNewAddress && (
+                      isAddingNewAddress && (
+                        <div className="space-y-3 pt-4">
+                          {addressSaved && (
+                            <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                              <span className="text-sm text-green-800 font-medium">
+                                Address saved successfully! You can find it in your profile.
+                              </span>
+                            </div>
+                          )}
+                          <div className="flex items-center justify-between gap-3">
                             <Button
                               type="button"
                               variant="outline"
@@ -796,7 +820,17 @@ const CheckoutPage: React.FC = () => {
                               <Plus className="w-3 h-3" />
                               Save Address
                             </Button>
-                          )}
+
+                            <Button
+                              type="button"
+                              variant="default"
+                              size="sm"
+                              onClick={handleChooseExistingAddress}
+                              className="flex items-center gap-1 bg-green-600 hover:bg-green-700"
+                            >
+                              Choose Existing Address
+                            </Button>
+                          </div>
                         </div>
                       )}
 
