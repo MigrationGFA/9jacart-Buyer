@@ -68,4 +68,3 @@ export default tseslint.config([
 ])
 ```
 
-Latest Push
