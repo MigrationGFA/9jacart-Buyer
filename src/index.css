@@ -116,6 +116,23 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* All clickable elements should have pointer cursor */
+  button,
+  a,
+  [role="button"],
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"],
+  label[for],
+  label:has(input[type="checkbox"]),
+  label:has(input[type="radio"]) {
+    @apply cursor-pointer;
+  }
+  /* Disabled buttons should not have pointer cursor */
+  button:disabled,
+  input:disabled {
+    @apply cursor-not-allowed;
+  }
 }
 
 @layer utilities {

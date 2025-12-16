@@ -120,11 +120,14 @@ export const filterProducts = (
     
     // Tags filter (only for full Product objects)
     if (filters.tags && filters.tags.length > 0 && 'tags' in product) {
-      const hasMatchingTag = filters.tags.some(tag => 
-        product.tags.includes(tag)
-      );
-      if (!hasMatchingTag) {
-        return false;
+      const productTags = product.tags;
+      if (productTags) {
+        const hasMatchingTag = filters.tags.some(tag => 
+          productTags.includes(tag)
+        );
+        if (!hasMatchingTag) {
+          return false;
+        }
       }
     }
     
@@ -158,9 +161,12 @@ export const searchProducts = (
     
     // Search in tags (only for full Product objects)
     if ('tags' in product) {
-      return product.tags.some(tag => 
-        tag.toLowerCase().includes(searchTerm)
-      );
+      const productTags = product.tags;
+      if (productTags) {
+        return productTags.some(tag => 
+          tag.toLowerCase().includes(searchTerm)
+        );
+      }
     }
     
     return false;

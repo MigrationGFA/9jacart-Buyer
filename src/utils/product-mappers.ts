@@ -79,6 +79,7 @@ export const mapApiProductToProduct = (apiProduct: ApiProductData): Product => {
     brand: undefined, // API doesn't provide brand
     model: undefined, // API doesn't provide model
     categoryId: apiProduct.categoryId,
+    categoryName: apiProduct.categoryName, // Include category name for related products filtering
     subcategoryId: undefined, // API doesn't provide subcategory
     tags: apiProduct.productTags,
     description: apiProduct.productDescription,
@@ -179,6 +180,8 @@ export const mapApiProductToProductSummary = (apiProduct: ApiProductData): Produ
     slug: generateSlug(apiProduct.productName),
     brand: undefined,
     categoryId: apiProduct.categoryId,
+    categoryName: apiProduct.categoryName, // Include category name for related products filtering
+    tags: apiProduct.productTags,
     price,
     inventory,
     images,

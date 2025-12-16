@@ -155,6 +155,7 @@ export interface Product extends BaseEntity, Slug {
 
   // Categorization
   categoryId: string; // Reference to category
+  categoryName?: string; // Category name from API for related products filtering
   subcategoryId?: string;
   tags: string[];
 
@@ -209,6 +210,9 @@ export interface ProductSummary {
   slug: string;
   brand?: string;
   categoryId: string;
+  categoryName?: string; // Category name from API for related products filtering
+  // Optional tags for lightweight related-products logic
+  tags?: string[];
   price: PriceWithDiscount;
   inventory: Pick<Inventory, 'inStock' | 'status'>;
   images: Pick<ProductMedia, 'main' | 'alt'>;

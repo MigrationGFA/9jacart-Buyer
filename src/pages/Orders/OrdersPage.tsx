@@ -16,6 +16,8 @@ const OrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Feature flag to keep the return workflow archived while preserving the display condition
+  const isReturnFeatureEnabled = false;
 
   // Fetch orders from API
   useEffect(() => {
@@ -260,13 +262,15 @@ const OrdersPage: React.FC = () => {
                           Track Order
                         </Link>
                       </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleReturnClick(order)}
-                      >
-                        Return
-                      </Button>
+                      {isReturnFeatureEnabled && order.status === 'delivered' && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleReturnClick(order)}
+                        >
+                          Return
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardContent>

@@ -36,11 +36,12 @@ const ProductDetailPage: React.FC = () => {
   // Use real API hook
   const { product, loading, error } = useRealProduct(id || null);
   
-  // Get related products from same category
+  // Fetch a broader pool of products for better tag-based matching across categories
+  // We'll filter by categoryName and tags in the filtering logic
   const { products: relatedProducts } = useRealProductsList({ 
     page: 1, 
-    perPage: 4,
-    ...(product?.categoryId && { category: product.categoryId })
+    // Fetch more products to have a good pool for filtering by categoryName and tags
+    perPage: 50,
   });
 
   const [selectedImage, setSelectedImage] = useState(0);
@@ -83,6 +84,54 @@ const ProductDetailPage: React.FC = () => {
   const handleQuantityChange = (change: number) => {
     setQuantity((prev) => Math.max(1, prev + change));
   };
+
+  // Filter related items based on:
+  // 1. Same categoryName (as indicated by vendor)
+  // 2. Matching productTags (at least one tag in common, supports multiple tags)
+  const filteredRelatedProducts = React.useMemo(() => {
+    if (!product || !relatedProducts.length) return [];
+
+    // Exclude current product
+    const candidates = relatedProducts.filter(
+      (relatedProduct) => relatedProduct.id !== product.id
+    );
+
+    if (candidates.length === 0) return [];
+
+    const productCategoryName = product.categoryName;
+    const productTags = product.tags ?? [];
+
+    // Filter products that match by categoryName OR have at least one matching tag
+    const matched = candidates.filter((relatedProduct) => {
+      // Match by categoryName (exact match)
+      const categoryMatch = 
+        productCategoryName && 
+        relatedProduct.categoryName && 
+        relatedProduct.categoryName.toLowerCase() === productCategoryName.toLowerCase();
+
+      // Match by tags (at least one tag in common)
+      const tagMatch = 
+        productTags.length > 0 &&
+        relatedProduct.tags &&
+        relatedProduct.tags.length > 0 &&
+        relatedProduct.tags.some((tag) => 
+          productTags.some((productTag) => 
+            tag.toLowerCase() === productTag.toLowerCase()
+          )
+        );
+
+      return categoryMatch || tagMatch;
+    });
+
+    // If we have matches, use them; otherwise fall back to candidates from same categoryId
+    const finalList = matched.length > 0 
+      ? matched 
+      : candidates.filter((relatedProduct) => 
+          relatedProduct.categoryId === product.categoryId
+        );
+
+    return finalList.slice(0, 4);
+  }, [product, relatedProducts]);
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
@@ -383,7 +432,7 @@ const ProductDetailPage: React.FC = () => {
         </div>
 
         {/* Related Items */}
-        {relatedProducts.length > 0 && (
+        {filteredRelatedProducts.length > 0 && (
           <div className="space-y-6">
             <div className="flex items-center gap-4">
               <div className="w-4 h-8 bg-primary rounded"></div>
@@ -391,10 +440,7 @@ const ProductDetailPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {relatedProducts
-                .filter(relatedProduct => relatedProduct.id !== product?.id) // Exclude current product
-                .slice(0, 4)
-                .map((relatedProduct) => (
+              {filteredRelatedProducts.map((relatedProduct) => (
                   <ProductCard
                     key={relatedProduct.id}
                     product={normalizeProductImages(relatedProduct)}

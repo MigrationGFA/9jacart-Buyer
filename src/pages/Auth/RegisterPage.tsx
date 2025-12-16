@@ -88,7 +88,7 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className="border border-gray-300 rounded-lg p-8">
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Create your account</h1>
         <p className="mt-2 text-sm text-gray-600">
@@ -120,6 +120,7 @@ const RegisterPage: React.FC = () => {
               value={formData.firstName}
               onChange={handleChange}
               placeholder="First name"
+              className="!border-gray-400"
             />
           </div>
           <div>
@@ -135,6 +136,7 @@ const RegisterPage: React.FC = () => {
               value={formData.lastName}
               onChange={handleChange}
               placeholder="Last name"
+              className="!border-gray-400"
             />
           </div>
         </div>
@@ -152,7 +154,7 @@ const RegisterPage: React.FC = () => {
             value={formData.email}
             onChange={handleChange}
             placeholder="Enter your email"
-            className="w-full"
+            className="w-full !border-gray-400"
           />
         </div>
 
@@ -170,7 +172,7 @@ const RegisterPage: React.FC = () => {
               value={formData.password}
               onChange={handleChange}
               placeholder="Create a password"
-              className="w-full pr-10"
+              className="w-full pr-10 !border-gray-400"
             />
             <button
               type="button"
@@ -200,7 +202,7 @@ const RegisterPage: React.FC = () => {
               value={formData.confirmPassword}
               onChange={handleChange}
               placeholder="Confirm your password"
-              className="w-full pr-10"
+              className="w-full pr-10 !border-gray-400"
             />
             <button
               type="button"

@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
-  Package,
   Truck,
   CheckCircle,
   MapPin,
-  FileText,
   HelpCircle,
   RotateCcw,
   CreditCard,
@@ -24,21 +22,27 @@ import {
 import { mockApi } from "../../data/mockData";
 import { cn } from "../../lib/utils";
 
+type OrderStatus =
+  | "order-placed"
+  | "order-confirmed"
+  | "awaiting-pickup"
+  | "in-transit"
+  | "order-delivered";
+
 interface TrackingStep {
-  id: string;
+  id: OrderStatus;
   title: string;
   description: string;
   date: string;
   completed: boolean;
   current: boolean;
-  icon: React.ReactNode;
 }
 
 interface OrderDetails {
   id: string;
   orderDate: string;
   estimatedDelivery: string;
-  status: "confirmed" | "shipped" | "out-for-delivery" | "delivered";
+  status: OrderStatus;
   trackingNumber?: string;
   items: Array<{
     id: string;
@@ -83,7 +87,7 @@ const TrackOrderPage: React.FC = () => {
         id: id || "3354654654526",
         orderDate: "Feb 16, 2022",
         estimatedDelivery: "May 16, 2022",
-        status: "out-for-delivery",
+        status: "awaiting-pickup",
         trackingNumber: "TRK123456789",
         items: [
           {
@@ -131,7 +135,11 @@ const TrackOrderPage: React.FC = () => {
             }),
             estimatedDelivery: "May 16, 2022", // Could be calculated based on order date
             status:
-              order.status === "shipped" ? "out-for-delivery" : "confirmed",
+              order.status === "delivered"
+                ? "order-delivered"
+                : order.status === "shipped"
+                ? "awaiting-pickup"
+                : "order-confirmed",
             trackingNumber: `TRK${order.id.slice(-9)}`,
             items: order.items.map((item) => ({
               id: item.id,
@@ -180,47 +188,45 @@ const TrackOrderPage: React.FC = () => {
     loadOrderDetails();
   }, [id]);
 
-  const getTrackingSteps = (status: string): TrackingStep[] => {
-    const baseSteps = [
-      {
-        id: "confirmed",
-        title: "Order Confirmed",
-        description: "Wed, 11th Jan",
-        date: "Wed, 11th Jan",
-        completed: true,
-        current: false,
-        icon: <CheckCircle className="w-5 h-5" />,
-      },
-      {
-        id: "shipped",
-        title: "Shipped",
-        description: "Wed, 11th Jan",
-        date: "Wed, 11th Jan",
-        completed: status !== "confirmed",
-        current: status === "shipped",
-        icon: <Package className="w-5 h-5" />,
-      },
-      {
-        id: "out-for-delivery",
-        title: "Out For Delivery",
-        description: "Wed, 11th Jan",
-        date: "Wed, 11th Jan",
-        completed: status === "delivered",
-        current: status === "out-for-delivery",
-        icon: <Truck className="w-5 h-5" />,
-      },
-      {
-        id: "delivered",
-        title: "Delivered",
-        description: "Expected by, Mon 16th",
-        date: "Expected by, Mon 16th",
-        completed: status === "delivered",
-        current: false,
-        icon: <CheckCircle className="w-5 h-5" />,
-      },
+  const getTrackingSteps = (status: OrderStatus): TrackingStep[] => {
+    const orderedStatuses: OrderStatus[] = [
+      "order-placed",
+      "order-confirmed",
+      "awaiting-pickup",
+      "in-transit",
+      "order-delivered",
     ];
 
-    return baseSteps;
+    const labels: Record<OrderStatus, string> = {
+      "order-placed": "Order Placed",
+      "order-confirmed": "Order Confirmed",
+      "awaiting-pickup": "Awaiting Pickup",
+      "in-transit": "In Transit",
+      "order-delivered": "Order Delivered",
+    };
+
+    const descriptions: Record<OrderStatus, string> = {
+      "order-placed": orderDetails?.orderDate || "Order created",
+      "order-confirmed": "We are confirming your order",
+      "awaiting-pickup":
+        "We are waiting for rider to pick up product from pickup location",
+      "in-transit": "Your package is on the move",
+      "order-delivered": "Package delivered to customer",
+    };
+
+    const currentIndex = Math.max(
+      orderedStatuses.indexOf(status),
+      0
+    );
+
+    return orderedStatuses.map((step, index) => ({
+      id: step,
+      title: labels[step],
+      description: descriptions[step],
+      date: descriptions[step],
+      completed: index < currentIndex,
+      current: index === currentIndex,
+    }));
   };
 
   const formatPrice = (price: number) => {
@@ -290,17 +296,6 @@ const TrackOrderPage: React.FC = () => {
               </div>
             </div>
           </div>
-
-          <div className="flex gap-3 mt-4 lg:mt-0">
-            <Button variant="outline" className="flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              Invoice
-            </Button>
-            <Button className="flex items-center gap-2 bg-green-600 hover:bg-green-700">
-              <Package className="w-4 h-4" />
-              Track order
-            </Button>
-          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -316,11 +311,12 @@ const TrackOrderPage: React.FC = () => {
                     className="absolute left-6 top-12 w-0.5 bg-green-500 transition-all duration-500"
                     style={{
                       height: `${
-                        ((trackingSteps.filter((step) => step.completed)
-                          .length -
-                          1) *
+                        (Math.max(
+                          0,
+                          trackingSteps.findIndex((step) => step.current)
+                        ) *
                           100) /
-                        (trackingSteps.length - 1)
+                          (trackingSteps.length - 1)
                       }%`,
                     }}
                   ></div>
@@ -334,16 +330,21 @@ const TrackOrderPage: React.FC = () => {
                           className={cn(
                             "flex items-center justify-center w-12 h-12 rounded-full border-2 bg-white z-10",
                             step.completed
-                              ? "border-green-500 text-green-500"
+                              ? "border-green-500 bg-green-50 text-green-500"
                               : step.current
-                              ? "border-blue-500 text-blue-500"
+                              ? "border-yellow-500 bg-yellow-50 text-yellow-600"
                               : "border-gray-300 text-gray-400"
                           )}
                         >
                           {step.completed ? (
                             <CheckCircle className="w-6 h-6 fill-current" />
                           ) : (
-                            step.icon
+                            <div
+                              className={cn(
+                                "w-3 h-3 rounded-full",
+                                step.current ? "bg-yellow-500" : "bg-gray-300"
+                              )}
+                            />
                           )}
                         </div>
 
@@ -364,7 +365,7 @@ const TrackOrderPage: React.FC = () => {
                           </p>
 
                           {/* Additional info for current step */}
-                          {step.current && step.id === "out-for-delivery" && (
+                          {step.current && step.id === "awaiting-pickup" && (
                             <div className="mt-3 p-3 bg-blue-50 rounded-lg">
                               <p className="text-sm text-blue-800">
                                 We Are Waiting for Rider to Pick Up Product From
@@ -531,43 +532,51 @@ const TrackOrderPage: React.FC = () => {
                   </div>
 
                   <div className="space-y-2 mt-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center">
-                        <CheckCircle className="w-3 h-3 text-white" />
+                    {trackingSteps.map((step) => (
+                      <div key={step.id}>
+                        <div
+                          className={cn(
+                            "flex items-center gap-2",
+                            !step.completed && !step.current
+                              ? "opacity-70"
+                              : ""
+                          )}
+                        >
+                          <div
+                            className={cn(
+                              "w-4 h-4 rounded-full flex items-center justify-center border-2",
+                              step.completed
+                                ? "bg-green-500 border-green-500"
+                                : step.current
+                                ? "border-yellow-500"
+                                : "border-gray-300"
+                            )}
+                          >
+                            {step.completed ? (
+                              <CheckCircle className="w-3 h-3 text-white" />
+                            ) : step.current ? (
+                              <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                            ) : null}
+                          </div>
+                          <span
+                            className={cn(
+                              "text-sm",
+                              step.completed || step.current
+                                ? "text-gray-900"
+                                : "text-gray-500"
+                            )}
+                          >
+                            {step.title}
+                          </span>
+                        </div>
+                        {step.current && step.id === "awaiting-pickup" && (
+                          <div className="ml-6 text-xs text-gray-500">
+                            We Are Waiting for Rider to Pick Up Product From
+                            Pickup Location
+                          </div>
+                        )}
                       </div>
-                      <span className="text-sm">Order Placed</span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center">
-                        <CheckCircle className="w-3 h-3 text-white" />
-                      </div>
-                      <span className="text-sm">Order Confirmed</span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded-full border-2 border-gray-300 bg-white flex items-center justify-center">
-                        <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
-                      </div>
-                      <span className="text-sm">Awaiting Pickup</span>
-                    </div>
-
-                    <div className="ml-6 text-xs text-gray-500">
-                      We Are Waiting for Rider to Pick Up Product From Pickup
-                      Location
-                    </div>
-
-                    <div className="flex items-center gap-2 opacity-50">
-                      <div className="w-4 h-4 rounded-full border-2 border-gray-300 bg-white"></div>
-                      <span className="text-sm text-gray-400">In Transit</span>
-                    </div>
-
-                    <div className="flex items-center gap-2 opacity-50">
-                      <div className="w-4 h-4 rounded-full border-2 border-gray-300 bg-white"></div>
-                      <span className="text-sm text-gray-400">
-                        Order Delivered
-                      </span>
-                    </div>
+                    ))}
                   </div>
                 </div>
               </CardContent>

@@ -53,7 +53,7 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className="border border-gray-300 rounded-lg p-8">
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Sign in to your account</h1>
         <p className="mt-2 text-sm text-gray-600">
@@ -90,7 +90,7 @@ const LoginPage: React.FC = () => {
             value={formData.email}
             onChange={handleChange}
             placeholder="Enter your email"
-            className="w-full"
+            className="w-full !border-gray-400"
           />
         </div>
 
@@ -108,7 +108,7 @@ const LoginPage: React.FC = () => {
               value={formData.password}
               onChange={handleChange}
               placeholder="Enter your password"
-              className="w-full pr-10"
+              className="w-full pr-10 border-gray-400"
             />
             <button
               type="button"

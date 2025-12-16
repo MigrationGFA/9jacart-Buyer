@@ -21,52 +21,56 @@ const RegistrationSuccessPage: React.FC = () => {
 
   return (
     <div className="text-center">
-      <div className="mb-8">
-        <div className="mx-auto flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-          <CheckCircle className="w-8 h-8 text-green-600" />
-        </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Registration Successful!</h1>
-        <p className="text-gray-600">
-          We've sent a verification code to your email address.
-        </p>
-      </div>
-
-      <Alert variant="default" className="mb-6 border-blue-200 bg-blue-50 text-blue-800">
-        <Mail className="w-4 h-4" />
-        <div className="ml-2">
-          <p className="font-medium">Check your email</p>
-          <p className="text-sm">
-            We sent a 5-digit verification code to{' '}
-            <span className="font-medium">{pendingVerification.identifier}</span>
+      <div className="border border-gray-300 rounded-lg p-8">
+        <div className="mb-8">
+          <div className="mx-auto flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+            <CheckCircle className="w-8 h-8 text-green-600" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Registration Successful!</h1>
+          <p className="text-gray-600">
+            We've sent a verification code to your email address.
           </p>
         </div>
-      </Alert>
 
-      <div className="space-y-4">
-        <Button
-          onClick={() => navigate('/auth/verify-email')}
-          className="w-full"
-        >
-          Verify Email Address
-        </Button>
+        <Alert variant="default" className="mb-6 border-blue-200 bg-blue-50 text-blue-800" showIcon={false}>
+          <div className="text-center">
+            <p className="font-medium flex items-center justify-center gap-2 mb-1">
+              <Mail className="w-4 h-4" />
+              Check your email
+            </p>
+            <p className="text-sm">
+              We sent a 5-digit verification code to{' '}
+              <span className="font-medium">{pendingVerification.identifier}</span>
+            </p>
+          </div>
+        </Alert>
 
-        <div className="text-sm text-gray-600">
-          Didn't receive the email?{' '}
-          <Link 
-            to="/auth/verify-email" 
-            className="font-medium text-blue-600 hover:text-blue-500"
+        <div className="space-y-4">
+          <Button
+            onClick={() => navigate('/auth/verify-email')}
+            className="w-full"
           >
-            Resend verification code
-          </Link>
-        </div>
+            Verify Email Address
+          </Button>
 
-        <div className="pt-4 border-t border-gray-200">
-          <Link 
-            to="/auth/register" 
-            className="text-sm text-gray-500 hover:text-gray-700"
-          >
-            ← Back to registration
-          </Link>
+          <div className="text-sm text-gray-600">
+            Didn't receive the email?{' '}
+            <Link 
+              to="/auth/verify-email" 
+              className="font-medium text-blue-600 hover:text-blue-500"
+            >
+              Resend verification code
+            </Link>
+          </div>
+
+          <div className="pt-4 border-t border-gray-200">
+            <Link 
+              to="/auth/register" 
+              className="text-sm text-gray-500 hover:text-gray-700"
+            >
+              ← Back to registration
+            </Link>
+          </div>
         </div>
       </div>
     </div>
