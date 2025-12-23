@@ -6,7 +6,6 @@ export interface ValidationError {
 export interface BillingDetailsForm {
   firstName: string;
   lastName: string;
-  companyName: string;
   streetAddress: string;
   apartment: string;
   townCity: string;

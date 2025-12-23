@@ -25,6 +25,9 @@ export interface ApiProductData {
   images: string[];
   isActive: string;
   storeName: string;
+  vendorLogo?: string; // URL-encoded JSON string containing logo URLs
+  vendorId?: string;
+  isSubaccountSet?: boolean;
   createdAt: string;
   updatedAt: string;
 }

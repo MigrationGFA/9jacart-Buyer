@@ -12,6 +12,7 @@ const VerifyEmailPage: React.FC = () => {
   const [error, setError] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
   const [successMessage, setSuccessMessage] = useState('');
+  const [verificationSuccess, setVerificationSuccess] = useState(false);
   
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -84,8 +85,14 @@ const VerifyEmailPage: React.FC = () => {
 
     try {
       await verifyEmail(otpString);
-      // Success - redirect to login with success message
-      navigate('/auth/login?message=verification-success');
+      // Show success message first
+      setVerificationSuccess(true);
+      setError('');
+      
+      // Redirect to login after showing success message
+      setTimeout(() => {
+        navigate('/auth/login');
+      }, 2000);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Verification failed. Please try again.');
     }
@@ -120,78 +127,88 @@ const VerifyEmailPage: React.FC = () => {
         </p>
       </div>
 
+      {verificationSuccess && (
+        <Alert variant="default" className="mb-6 border-green-200 bg-green-50 text-green-800">
+          Email verified successfully! You can now sign in to your account.
+        </Alert>
+      )}
+
       {error && (
         <Alert variant="destructive" className="mb-6">
           {error}
         </Alert>
       )}
 
-      {successMessage && (
+      {successMessage && !verificationSuccess && (
         <Alert variant="default" className="mb-6 border-green-200 bg-green-50 text-green-800">
           {successMessage}
         </Alert>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-4 text-center">
-            Verification Code
-          </label>
-          <div className="flex justify-center space-x-3">
-            {otp.map((digit, index) => (
-              <input
-                key={index}
-                ref={(el) => { inputRefs.current[index] = el; }}
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]"
-                maxLength={1}
-                value={digit}
-                onChange={(e) => handleOtpChange(index, e.target.value)}
-                onKeyDown={(e) => handleKeyDown(index, e)}
-                onPaste={handlePaste}
-                className="w-12 h-12 text-center text-lg font-semibold border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                autoComplete="off"
-              />
-            ))}
+      {!verificationSuccess && (
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-4 text-center">
+              Verification Code
+            </label>
+            <div className="flex justify-center space-x-3">
+              {otp.map((digit, index) => (
+                <input
+                  key={index}
+                  ref={(el) => { inputRefs.current[index] = el; }}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleOtpChange(index, e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(index, e)}
+                  onPaste={handlePaste}
+                  className="w-12 h-12 text-center text-lg font-semibold border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  autoComplete="off"
+                />
+              ))}
+            </div>
+          </div>
+
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={isLoading || otp.join('').length !== 5}
+          >
+            {isLoading ? 'Verifying...' : 'Verify Email'}
+          </Button>
+        </form>
+      )}
+
+      {!verificationSuccess && (
+        <div className="mt-6 text-center space-y-4">
+          <div>
+            <span className="text-sm text-gray-600">Didn't receive the code? </span>
+            <button
+              type="button"
+              onClick={handleResendOtp}
+              disabled={resendCooldown > 0 || isLoading}
+              className="text-sm font-medium text-blue-600 hover:text-blue-500 disabled:text-gray-400 disabled:cursor-not-allowed"
+            >
+              {resendCooldown > 0 
+                ? `Resend in ${resendCooldown}s` 
+                : 'Resend code'
+              }
+            </button>
+          </div>
+
+          <div className="pt-4 border-t border-gray-200">
+            <Link 
+              to="/auth/register" 
+              className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
+            >
+              <ArrowLeft className="w-4 h-4 mr-1" />
+              Back to registration
+            </Link>
           </div>
         </div>
-
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={isLoading || otp.join('').length !== 5}
-        >
-          {isLoading ? 'Verifying...' : 'Verify Email'}
-        </Button>
-      </form>
-
-      <div className="mt-6 text-center space-y-4">
-        <div>
-          <span className="text-sm text-gray-600">Didn't receive the code? </span>
-          <button
-            type="button"
-            onClick={handleResendOtp}
-            disabled={resendCooldown > 0 || isLoading}
-            className="text-sm font-medium text-blue-600 hover:text-blue-500 disabled:text-gray-400 disabled:cursor-not-allowed"
-          >
-            {resendCooldown > 0 
-              ? `Resend in ${resendCooldown}s` 
-              : 'Resend code'
-            }
-          </button>
-        </div>
-
-        <div className="pt-4 border-t border-gray-200">
-          <Link 
-            to="/auth/register" 
-            className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            Back to registration
-          </Link>
-        </div>
-      </div>
+      )}
     </div>
   );
 };

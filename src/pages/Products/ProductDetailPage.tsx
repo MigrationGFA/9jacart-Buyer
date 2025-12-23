@@ -26,11 +26,13 @@ import { useRealProduct, useRealProductsList } from "../../hooks/api/useRealProd
 // import type { Product } from "../../types";
 import { cn, normalizeProductImages } from "../../lib/utils";
 import { ProductCard } from "@/components/Product";
+import { useNotificationContext } from "../../providers/NotificationProvider";
 
 const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { showNotification } = useNotificationContext();
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isItemInWishlist } = useWishlistStore();
 
   // Use real API hook
@@ -43,6 +45,9 @@ const ProductDetailPage: React.FC = () => {
     // Fetch more products to have a good pool for filtering by categoryName and tags
     perPage: 50,
   });
+
+  // Use product reviews (API ratings archived)
+  const displayReviews = product?.reviews;
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedColor, setSelectedColor] = useState<string>("");
@@ -72,13 +77,39 @@ const ProductDetailPage: React.FC = () => {
 
   const handleAddToCart = async () => {
     if (!product) return;
-    await addToCart(product, quantity);
+    try {
+      await addToCart(product, quantity);
+      showNotification(
+        `${product.name} has been added to cart`,
+        'success',
+        3000
+      );
+    } catch (error) {
+      showNotification(
+        'Failed to add product to cart. Please try again.',
+        'error',
+        3000
+      );
+    }
   };
 
   const handleCheckout = async () => {
     if (!product) return;
-    await addToCart(product, quantity);
-    navigate("/checkout");
+    try {
+      await addToCart(product, quantity);
+      showNotification(
+        `${product.name} has been added to cart`,
+        'success',
+        3000
+      );
+      navigate("/checkout");
+    } catch (error) {
+      showNotification(
+        'Failed to add product to cart. Please try again.',
+        'error',
+        3000
+      );
+    }
   };
 
   const handleQuantityChange = (change: number) => {
@@ -244,11 +275,24 @@ const ProductDetailPage: React.FC = () => {
                 {product.name}
               </h1>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-bold">
-                    {product.storeName ? product.storeName.charAt(0).toUpperCase() : '9J'}
-                  </span>
-                </div>
+                {product.vendorLogo ? (
+                  <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-gray-200">
+                    <Image
+                      src={product.vendorLogo}
+                      alt={product.storeName || 'Vendor'}
+                      className="w-full h-full object-cover"
+                      onError={() => {
+                        console.warn('Vendor logo failed to load:', product.vendorLogo);
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-white text-sm font-bold">
+                      {product.storeName ? product.storeName.charAt(0).toUpperCase() : '9J'}
+                    </span>
+                  </div>
+                )}
                 <div>
                   <p className="font-medium text-gray-900">
                     {product.storeName || '9jaCart'}
@@ -262,17 +306,19 @@ const ProductDetailPage: React.FC = () => {
             </div>
 
             {/* Reviews */}
-            <div className="flex items-center gap-2">
-              <div className="flex items-center">
-                {renderStars(product.reviews.average)}
+            {displayReviews && (
+              <div className="flex items-center gap-2">
+                <div className="flex items-center">
+                  {renderStars(displayReviews.average)}
+                </div>
+                <span className="text-sm text-gray-600">
+                  ({displayReviews.total} Reviews)
+                </span>
+                <Badge variant={product.inventory.inStock ? "success" : "destructive"} className="ml-2">
+                  {product.inventory.inStock ? "In Stock" : "Out of Stock"}
+                </Badge>
               </div>
-              <span className="text-sm text-gray-600">
-                ({product.reviews.total} Reviews)
-              </span>
-              <Badge variant={product.inventory.inStock ? "success" : "destructive"} className="ml-2">
-                {product.inventory.inStock ? "In Stock" : "Out of Stock"}
-              </Badge>
-            </div>
+            )}
 
             {/* Price */}
             <div className="space-y-2">
@@ -410,9 +456,9 @@ const ProductDetailPage: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <Truck className="w-5 h-5 text-primary" />
                   <div>
-                    <p className="font-medium">Free Delivery</p>
+                    <p className="font-medium">Delivery</p>
                     <p className="text-sm text-gray-600">
-                      Enter your postal code for Delivery Availability.
+                      Delivery fees will be paid upon product arrival.
                     </p>
                   </div>
                 </div>
@@ -420,9 +466,9 @@ const ProductDetailPage: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <RotateCcw className="w-5 h-5 text-primary" />
                   <div>
-                    <p className="font-medium">Return Delivery</p>
+                    <p className="font-medium">Return Item</p>
                     <p className="text-sm text-gray-600">
-                      Free 30 Days Delivery Returns. Details
+                      A dispute for a dissatisfied item must be opened within 3 days of delivery.
                     </p>
                   </div>
                 </div>
@@ -431,9 +477,83 @@ const ProductDetailPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Customer Reviews Section */}
+        <Card className="mt-8">
+          <CardContent className="p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Customer Reviews</h2>
+            
+            {displayReviews && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Rating Summary */}
+                <div className="md:col-span-1 flex flex-col items-center justify-center border-r border-gray-200 pr-6">
+                  <div className="text-5xl font-bold text-gray-900 mb-2">
+                    {displayReviews.average.toFixed(1)}
+                  </div>
+                  <div className="flex items-center gap-1 mb-2">
+                    {renderStars(displayReviews.average)}
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    {displayReviews.total} rating{displayReviews.total !== 1 ? 's' : ''}
+                  </div>
+                  <div className="mt-4 text-center">
+                    <p className="text-xs text-gray-500">
+                      Ratings from verified purchases
+                    </p>
+                  </div>
+                </div>
+
+                {/* Rating Breakdown */}
+                <div className="md:col-span-2 space-y-3">
+                  {displayReviews.breakdown && (
+                    <>
+                      {[5, 4, 3, 2, 1].map((stars) => {
+                        const count = displayReviews.breakdown?.[stars as keyof typeof displayReviews.breakdown] || 0;
+                        const percentage = displayReviews.total > 0 
+                          ? (count / displayReviews.total) * 100 
+                          : 0;
+                      
+                      return (
+                        <div key={stars} className="flex items-center gap-3">
+                          <span className="text-sm font-medium text-gray-700 w-12">
+                            {stars} star{stars > 1 ? 's' : ''}
+                          </span>
+                          <div className="flex-1 h-4 bg-gray-200 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-yellow-400 transition-all"
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                          <span className="text-sm text-gray-600 w-12 text-right">
+                            {count}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </>
+                )}
+                </div>
+              </div>
+            )}
+            
+            <div className="pt-4 mt-4 border-t border-gray-200">
+              <p className="text-sm text-gray-600 mb-3">
+                <strong>Rate this product:</strong> After purchasing and receiving this item, 
+                you can rate and review your experience in your order history.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/orders')}
+              >
+                View My Orders
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Related Items */}
         {filteredRelatedProducts.length > 0 && (
-          <div className="space-y-6">
+          <div className="space-y-6 mt-8">
             <div className="flex items-center gap-4">
               <div className="w-4 h-8 bg-primary rounded"></div>
               <h2 className="text-2xl font-bold text-gray-900">Related Items</h2>

@@ -6,6 +6,7 @@ import AccountSidebar from '../../components/Account/AccountSidebar';
 import ProfileSection from '../../components/Account/ProfileSection';
 import AddressesSection from '../../components/Account/AddressesSection';
 import OrdersSection from '../../components/Account/OrdersSection';
+import ContactAdminPage from './ContactAdminPage';
 
 const AccountPage: React.FC = () => {
   const { user } = useAuthStore();
@@ -38,6 +39,8 @@ const AccountPage: React.FC = () => {
         return renderPlaceholderSection('My Cancellations', 'View your cancelled orders here');
       case 'notifications':
         return renderPlaceholderSection('Notifications', 'Manage your notification preferences here');
+      case 'contact-support':
+        return <ContactAdminPage />;
       default:
         return <ProfileSection />;
     }

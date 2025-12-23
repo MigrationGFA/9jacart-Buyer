@@ -24,6 +24,7 @@ const CartPage: React.FC = () => {
     clearAllItems, 
     totalItems,
     isLoading,
+    isInitialLoading,
     error,
     isAuthenticated
   } = useCart();
@@ -55,8 +56,8 @@ const CartPage: React.FC = () => {
     }
   };
 
-  // Show loading state while cart is being fetched
-  if (isLoading) {
+  // Show loading state only for initial cart loading, not for operations
+  if (isInitialLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 py-8">
@@ -87,8 +88,8 @@ const CartPage: React.FC = () => {
     );
   }
 
-  // Only show empty cart message after loading is complete
-  if (!isLoading && items.length === 0) {
+  // Only show empty cart message after initial loading is complete
+  if (!isInitialLoading && items.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 py-8">

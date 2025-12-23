@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation, Link } from 'react-router-dom';
-import { CheckCircle, Package, Truck, Clock } from 'lucide-react';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
+import { CheckCircle, Package, Truck, Clock, Star } from 'lucide-react';
 import { Button, Card, CardContent, Badge, Modal, Loading, Alert } from '../../components/UI';
-import { orderApi, transformApiOrderToOrder } from '../../api/order';
+import { RatingModal } from '../../components/Rating';
+import { orderApi, transformApiOrderToOrder, type OrderDetailResponse } from '../../api/order';
 import type { Order } from '../../types';
 
 
 const OrdersPage: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [showSuccess, setShowSuccess] = useState(false);
   const [orderDetails, setOrderDetails] = useState<any>(null);
   const [returnModalOpen, setReturnModalOpen] = useState(false);
@@ -16,6 +18,8 @@ const OrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+  const [ratingOrderDetails, setRatingOrderDetails] = useState<OrderDetailResponse | null>(null);
   // Feature flag to keep the return workflow archived while preserving the display condition
   const isReturnFeatureEnabled = false;
 
@@ -57,6 +61,25 @@ const OrdersPage: React.FC = () => {
         }
       };
       fetchOrders();
+      
+      // Fetch order details and show rating modal if orderNumber is available
+      const fetchOrderDetailsAndShowRating = async () => {
+        const orderNumber = location.state?.orderNumber;
+        if (orderNumber) {
+          try {
+            const orderDetail = await orderApi.getOrderDetail(orderNumber);
+            setRatingOrderDetails(orderDetail);
+            // Show rating modal after a short delay to let the page render
+            setTimeout(() => {
+              setIsRatingModalOpen(true);
+            }, 1000);
+          } catch (err) {
+            console.error('Failed to fetch order details for rating:', err);
+          }
+        }
+      };
+      
+      fetchOrderDetailsAndShowRating();
       
       // Clear the state after showing success
       const timer = setTimeout(() => {
@@ -251,12 +274,23 @@ const OrdersPage: React.FC = () => {
                     <div className="text-lg font-semibold text-gray-900 mb-2 sm:mb-0">
                       Total: {formatPrice(order.total)}
                     </div>
-                    <div className="flex space-x-3">
+                    <div className="flex flex-wrap gap-2">
                       <Button variant="outline" size="sm" asChild>
                         <Link to={`/orders/${order.id}`}>
                           View Details
                         </Link>
                       </Button>
+                      {order.status === 'delivered' && (
+                        <Button 
+                          variant="default" 
+                          size="sm"
+                          onClick={() => navigate(`/orders/${order.id}`, { state: { openRating: true } })}
+                          className="bg-primary hover:bg-primary/90"
+                        >
+                          <Star className="w-4 h-4 mr-1" />
+                          Rate Order
+                        </Button>
+                      )}
                       <Button variant="outline" size="sm" asChild>
                         <Link to={`/track-order/${order.id}`}>
                           Track Order
@@ -297,6 +331,23 @@ const OrdersPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Rating Modal */}
+      {ratingOrderDetails && (
+        <RatingModal
+          isOpen={isRatingModalOpen}
+          onClose={() => {
+            setIsRatingModalOpen(false);
+            setRatingOrderDetails(null);
+          }}
+          orderId={ratingOrderDetails.orderId || ratingOrderDetails.orderNumber || ratingOrderDetails.orderNo || ''}
+          orderItems={ratingOrderDetails.items || []}
+          onRatingSubmitted={() => {
+            setIsRatingModalOpen(false);
+            setRatingOrderDetails(null);
+          }}
+        />
+      )}
 
       {/* Return Modal */}
       <Modal

@@ -206,7 +206,7 @@ const NewHeader: React.FC = () => {
                             className="block px-3 py-3 hover:bg-gray-100 hover:text-gray-900 rounded-md transition-colors min-h-[44px] flex items-center"
                             onClick={(e) => handleMenuItemClick(e)}
                           >
-                            Contact Admin
+                            Contact Support
                           </Link>
                           <hr className="my-2 border-gray-200" />
                           <button
@@ -344,7 +344,7 @@ const NewHeader: React.FC = () => {
               {/* Account Section */}
               <div className="relative" ref={accountMenuRef}>
                 <button
-                  className="flex items-center text-sm text-white hover:text-primary hover:bg-white/10 px-3 py-2 rounded-md transition-colors"
+                  className="flex items-center text-sm text-white hover:text-white/80 hover:bg-white/5 px-3 py-2 rounded-md transition-colors"
                   onClick={handleAccountMenuClick}
                 >
                   {isAuthenticated ? (
@@ -409,7 +409,7 @@ const NewHeader: React.FC = () => {
                             className="block px-3 py-2 hover:bg-gray-100 hover:text-gray-900 rounded-md transition-colors"
                             onClick={(e) => handleMenuItemClick(e)}
                           >
-                            Contact Admin
+                            Contact Support
                           </Link>
                           <hr className="my-2 border-gray-200" />
                           <button

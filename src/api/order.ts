@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { apiClient } from "./client";
+import type { RateOrderRequest, RateOrderResponse, GetOrderRatingsResponse } from "../types";
 
 // Order API request types
 export interface BillingDetails {
@@ -271,6 +272,25 @@ export const orderApi = {
     
     // Return empty array if no orders found
     return [];
+  },
+
+  // Rate order (requires Bearer token)
+  rateOrder: async (ratingData: RateOrderRequest): Promise<RateOrderResponse> => {
+    return apiClient.post<RateOrderResponse>(
+      "/order/rate",
+      ratingData,
+      undefined,
+      true
+    );
+  },
+
+  // Get order ratings (requires Bearer token)
+  getOrderRatings: async (orderId: string): Promise<GetOrderRatingsResponse> => {
+    return apiClient.get<GetOrderRatingsResponse>(
+      `/order/${orderId}/ratings`,
+      undefined,
+      true
+    );
   },
 };
 

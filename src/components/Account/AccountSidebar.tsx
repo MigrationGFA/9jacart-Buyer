@@ -7,6 +7,7 @@ import {
   Package,
   RotateCcw,
   X,
+  MessageSquare,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../UI";
 import { cn } from "../../lib/utils";
@@ -68,6 +69,12 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
       label: "Notifications",
       icon: Bell,
       description: "Manage your notifications",
+    },
+    {
+      id: "contact-support",
+      label: "Contact Support",
+      icon: MessageSquare,
+      description: "Get help and support",
     },
   ];
 

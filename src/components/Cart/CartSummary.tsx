@@ -21,6 +21,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({ className }) => {
 
   const [promoCode, setPromoCode] = useState('');
   const [promoApplied, setPromoApplied] = useState(false);
+  const [promoError, setPromoError] = useState<string | null>(null);
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
@@ -31,9 +32,21 @@ const CartSummary: React.FC<CartSummaryProps> = ({ className }) => {
   };
 
   const handleApplyPromo = () => {
+    // Clear any previous errors
+    setPromoError(null);
+    
+    if (!promoCode.trim()) {
+      setPromoError('Please enter a promo code');
+      return;
+    }
+    
     // Mock promo code logic
-    if (promoCode.toLowerCase() === 'save10') {
+    const normalizedCode = promoCode.trim().toUpperCase();
+    if (normalizedCode === 'SAVE10') {
       setPromoApplied(true);
+      setPromoError(null);
+    } else {
+      setPromoError('Invalid promo code. Please try again.');
     }
   };
 
@@ -163,23 +176,40 @@ const CartSummary: React.FC<CartSummaryProps> = ({ className }) => {
         <CardContent className="p-6">
           <h3 className="font-medium text-gray-900 mb-4">Promo Code</h3>
           {!promoApplied ? (
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Enter promo code"
-                value={promoCode}
-                onChange={(e) => setPromoCode(e.target.value)}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              />
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleApplyPromo}
-                disabled={!promoCode.trim()}
-              >
-                Apply
-              </Button>
-            </div>
+            <>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Enter promo code"
+                  value={promoCode}
+                  onChange={(e) => {
+                    setPromoCode(e.target.value);
+                    // Clear error when user starts typing
+                    if (promoError) setPromoError(null);
+                  }}
+                  className={`flex-1 px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${
+                    promoError ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                />
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleApplyPromo}
+                  disabled={!promoCode.trim()}
+                >
+                  Apply
+                </Button>
+              </div>
+              
+              {/* Error Message */}
+              {promoError && (
+                <div className="mt-2">
+                  <Alert variant="destructive" className="py-2">
+                    <p className="text-sm">{promoError}</p>
+                  </Alert>
+                </div>
+              )}
+            </>
           ) : (
             <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-md">
               <span className="text-sm font-medium text-green-800">
@@ -191,6 +221,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({ className }) => {
                 onClick={() => {
                   setPromoApplied(false);
                   setPromoCode('');
+                  setPromoError(null);
                 }}
                 className="text-green-600 hover:text-green-700"
               >

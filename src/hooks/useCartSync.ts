@@ -41,7 +41,7 @@ export const useCartSync = () => {
       } else {
         // No guest items, just load server cart
         console.log('🔄 No guest items, loading server cart...');
-        loadServerCart().catch((error) => {
+        loadServerCart(true).catch((error) => {
           console.error('❌ Failed to load server cart on initial load:', error);
         });
       }

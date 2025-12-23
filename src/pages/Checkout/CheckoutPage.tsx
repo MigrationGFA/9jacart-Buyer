@@ -46,12 +46,13 @@ interface PaymentMethod {
   id: string;
   name: string;
   icon: React.ReactNode;
+  disabled?: boolean;
 }
 
 const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
 
-  const { items, totalPrice, clearAllItems, isLoading } = useCart();
+  const { items, availableItems, subtotal, shipping: cartShipping, tax: cartTax, finalTotal, clearAllItems, isLoading } = useCart();
   const { isAuthenticated, user } = useAuthStore();
   const { profile, fetchProfile, getDefaultAddress, getAddresses, addAddress } =
     useProfile();
@@ -59,7 +60,7 @@ const CheckoutPage: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isRedirectingToPayment, setIsRedirectingToPayment] = useState(false);
   const [saveInfo, setSaveInfo] = useState(false);
-  const [selectedPayment, setSelectedPayment] = useState("cash-on-delivery");
+  const [selectedPayment, setSelectedPayment] = useState("bank-card");
   const [showSuccess, setShowSuccess] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>(
@@ -74,6 +75,7 @@ const CheckoutPage: React.FC = () => {
     null
   );
   const [addressSavedSuccess, setAddressSavedSuccess] = useState(false);
+  const [addressSaveError, setAddressSaveError] = useState<string | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const justSavedAddressRef = useRef(false);
 
@@ -86,7 +88,6 @@ const CheckoutPage: React.FC = () => {
   const [billingDetails, setBillingDetails] = useState<BillingDetailsForm>({
     firstName: "",
     lastName: "",
-    companyName: "",
     streetAddress: "",
     apartment: "",
     townCity: "",
@@ -124,7 +125,6 @@ const CheckoutPage: React.FC = () => {
           streetAddress: defaultAddress.streetAddress || prev.streetAddress || "",
           townCity: defaultAddress.city || prev.townCity || "",
           apartment: prev.apartment || "",
-          companyName: prev.companyName || "",
         }));
         setShowAddressForm(false); // Hide form since we have default address
         setIsInitialLoad(false);
@@ -152,34 +152,41 @@ const CheckoutPage: React.FC = () => {
       id: "bank-card",
       name: "Bank/Card",
       icon: <CreditCard className="w-5 h-5" />,
+      disabled: false,
     },
     {
       id: "cash-on-delivery",
       name: "Pay on delivery",
       icon: <Truck className="w-5 h-5" />,
+      disabled: true,
     },
     {
       id: "buy-now-pay-later",
       name: "Buy Now, Pay Later",
       icon: <Shield className="w-5 h-5" />,
+      disabled: true,
     },
     {
       id: "emergency-credit",
       name: "Emergency Credit",
       icon: <Shield className="w-5 h-5" />,
+      disabled: true,
     },
   ];
 
-  const subtotal = totalPrice;
-  const shipping = 0; // Free shipping
+  // Use filtered values from cart (already exclude unavailable products)
+  const cartSubtotal = subtotal; // Use filtered subtotal from cart
+  const shipping = cartShipping; // Use shipping from cart (already calculated based on filtered items)
+  const tax = cartTax; // Use tax from cart (already calculated based on filtered items)
   const discount = couponDiscount;
-  const total = subtotal + shipping - discount;
+  const total = finalTotal - discount; // Use finalTotal from cart (already includes subtotal + shipping + tax)
 
   // Address management functions
   const handleEditAddress = () => {
     setShowAddressForm(true);
     setShowAddressSelector(false);
     setAddressSavedSuccess(false);
+    setAddressSaveError(null);
     // Ensure form is populated with current selected address data
     if (selectedAddress) {
       setBillingDetails((prev) => ({
@@ -196,6 +203,7 @@ const CheckoutPage: React.FC = () => {
     setShowAddressSelector(true);
     setShowAddressForm(false);
     setAddressSavedSuccess(false);
+    setAddressSaveError(null);
   };
 
   const handleSelectAddress = (address: UserAddress) => {
@@ -213,7 +221,6 @@ const CheckoutPage: React.FC = () => {
       emailAddress: prev.emailAddress || user?.email || profile?.email || "",
       phoneNumber: prev.phoneNumber || user?.phone || profile?.phone || "",
       apartment: prev.apartment || "",
-      companyName: prev.companyName || "",
     }));
     setShowAddressSelector(false);
     setShowAddressForm(false);
@@ -223,18 +230,22 @@ const CheckoutPage: React.FC = () => {
     setShowAddressSelector(false);
     setShowAddressForm(true);
     setAddressSavedSuccess(false);
+    setAddressSaveError(null);
     // Clear form for new address
     setBillingDetails((prev) => ({
       ...prev,
       streetAddress: "",
       apartment: "",
       townCity: "",
-      companyName: "",
     }));
   };
 
   const handleSaveNewAddress = async () => {
     if (!isAuthenticated) return;
+
+    // Clear previous errors
+    setAddressSaveError(null);
+    setAddressSavedSuccess(false);
 
     try {
       const newAddress: Omit<UserAddress, "id" | "createdAt" | "updatedAt"> = {
@@ -253,6 +264,7 @@ const CheckoutPage: React.FC = () => {
       
       // Show success message and keep form open with current values
       setAddressSavedSuccess(true);
+      setAddressSaveError(null);
       setShowAddressForm(true); // Explicitly keep form open
       setShowAddressSelector(false); // Don't show address selector
       
@@ -262,6 +274,10 @@ const CheckoutPage: React.FC = () => {
       console.error("Failed to save address:", error);
       setAddressSavedSuccess(false);
       justSavedAddressRef.current = false;
+      
+      // Extract user-friendly error message
+      const errorMessage = apiErrorUtils.getErrorMessage(error);
+      setAddressSaveError(errorMessage);
     }
   };
 
@@ -326,8 +342,8 @@ const CheckoutPage: React.FC = () => {
   };
 
   const handlePlaceOrder = async () => {
-    // Check if cart is empty first
-    if (items.length === 0) {
+    // Check if cart is empty first (only check available items)
+    if (availableItems.length === 0) {
       alert("Your cart is empty. Please add items to your cart before placing an order.");
       navigate("/products");
       return;
@@ -375,7 +391,7 @@ const CheckoutPage: React.FC = () => {
 
     try {
       const billingData = transformBillingDetails(billingDetails);
-      const orderItems = transformCartItemsToOrderItems(items);
+      const orderItems = transformCartItemsToOrderItems(availableItems);
       const paymentMethod = mapPaymentMethodToApi(selectedPayment);
 
       // Validate order items
@@ -634,7 +650,7 @@ const CheckoutPage: React.FC = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold text-gray-900">
-                    Billing Details
+                    Shipping Details
                   </h2>
                   {isAuthenticated && (
                     <div className="flex items-center text-sm text-green-600">
@@ -694,7 +710,7 @@ const CheckoutPage: React.FC = () => {
                           handleInputChange("firstName", e.target.value)
                         }
                         className={cn(
-                          "w-full",
+                          "w-full !border-gray-400",
                           getFieldError("firstName") &&
                             "border-red-500 focus:ring-red-500"
                         )}
@@ -719,21 +735,7 @@ const CheckoutPage: React.FC = () => {
                         onChange={(e) =>
                           handleInputChange("lastName", e.target.value)
                         }
-                        className="w-full"
-                      />
-                    </div>
-
-                    {/* Company Name */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Company Name
-                      </label>
-                      <Input
-                        value={billingDetails.companyName}
-                        onChange={(e) =>
-                          handleInputChange("companyName", e.target.value)
-                        }
-                        className="w-full"
+                        className="w-full !border-gray-400"
                       />
                     </div>
 
@@ -749,7 +751,7 @@ const CheckoutPage: React.FC = () => {
                           handleInputChange("streetAddress", e.target.value)
                         }
                         className={cn(
-                          "w-full",
+                          "w-full !border-gray-400",
                           getFieldError("streetAddress") &&
                             "border-red-500 focus:ring-red-500"
                         )}
@@ -773,7 +775,7 @@ const CheckoutPage: React.FC = () => {
                         onChange={(e) =>
                           handleInputChange("apartment", e.target.value)
                         }
-                        className="w-full"
+                        className="w-full !border-gray-400"
                       />
                     </div>
 
@@ -789,7 +791,7 @@ const CheckoutPage: React.FC = () => {
                           handleInputChange("townCity", e.target.value)
                         }
                         className={cn(
-                          "w-full",
+                          "w-full !border-gray-400",
                           getFieldError("townCity") &&
                             "border-red-500 focus:ring-red-500"
                         )}
@@ -814,11 +816,11 @@ const CheckoutPage: React.FC = () => {
                         value={billingDetails.phoneNumber}
                         onChange={(e) => handlePhoneChange(e.target.value)}
                         className={cn(
-                          "w-full",
+                          "w-full !border-gray-400",
                           getFieldError("phoneNumber") &&
                             "border-red-500 focus:ring-red-500"
                         )}
-                        placeholder="(555) 123-4567"
+                        placeholder="+2348000000000"
                         required
                       />
                       {getFieldError("phoneNumber") && (
@@ -842,7 +844,7 @@ const CheckoutPage: React.FC = () => {
                           handleInputChange("emailAddress", e.target.value)
                         }
                         className={cn(
-                          "w-full",
+                          "w-full !border-gray-400",
                           getFieldError("emailAddress") &&
                             "border-red-500 focus:ring-red-500"
                         )}
@@ -865,6 +867,14 @@ const CheckoutPage: React.FC = () => {
                               <p className="text-sm text-green-800">
                                 Your address have being saved, you can access it on your profile
                               </p>
+                            </div>
+                          )}
+                          {addressSaveError && (
+                            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                              <div className="flex items-center gap-2 text-sm text-red-800">
+                                <AlertCircle className="w-4 h-4" />
+                                {addressSaveError}
+                              </div>
                             </div>
                           )}
                           <div className="flex items-center justify-between">
@@ -938,9 +948,10 @@ const CheckoutPage: React.FC = () => {
           {/* Order Summary */}
           <div>
             <OrderSummary
-              items={items}
-              subtotal={subtotal}
+              items={availableItems}
+              subtotal={cartSubtotal}
               shipping={shipping}
+              tax={tax}
               discount={discount}
               total={total}
               appliedCoupon={appliedCoupon}
@@ -1025,42 +1036,74 @@ const CheckoutPage: React.FC = () => {
                     Payment Method
                   </h3>
                   <div className="space-y-3">
-                    {paymentMethods.map((method) => (
-                      <label
-                        key={method.id}
-                        className={cn(
-                          "flex items-center space-x-3 p-3 border rounded-lg cursor-pointer transition-colors",
-                          selectedPayment === method.id
-                            ? "border-green-500 bg-green-50"
-                            : "border-gray-200 hover:border-gray-300"
-                        )}
-                      >
-                        <input
-                          type="radio"
-                          name="payment"
-                          value={method.id}
-                          checked={selectedPayment === method.id}
-                          onChange={(e) => setSelectedPayment(e.target.value)}
-                          className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 focus:ring-green-500 focus:ring-2"
-                        />
-                        <div className="flex items-center space-x-2">
-                          {method.icon}
-                          <span className="text-sm font-medium">
-                            {method.name}
-                          </span>
+                    {paymentMethods.map((method) => {
+                      const isDisabled = method.disabled;
+                      return (
+                        <div
+                          key={method.id}
+                          className="relative group"
+                        >
+                          <label
+                            className={cn(
+                              "flex items-center space-x-3 p-3 border rounded-lg transition-colors",
+                              isDisabled
+                                ? "cursor-not-allowed opacity-60"
+                                : "cursor-pointer",
+                              selectedPayment === method.id && !isDisabled
+                                ? "border-green-500 bg-green-50"
+                                : isDisabled
+                                ? "border-gray-200"
+                                : "border-gray-200 hover:border-gray-300"
+                            )}
+                            onClick={(e) => {
+                              if (isDisabled) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                              }
+                            }}
+                          >
+                            <input
+                              type="radio"
+                              name="payment"
+                              value={method.id}
+                              checked={selectedPayment === method.id}
+                              onChange={(e) => {
+                                if (!isDisabled) {
+                                  setSelectedPayment(e.target.value);
+                                }
+                              }}
+                              disabled={isDisabled}
+                              className={cn(
+                                "w-4 h-4 text-green-600 bg-gray-100 border-gray-300 focus:ring-green-500 focus:ring-2",
+                                isDisabled && "cursor-not-allowed"
+                              )}
+                            />
+                            <div className="flex items-center space-x-2">
+                              {method.icon}
+                              <span className="text-sm font-medium">
+                                {method.name}
+                              </span>
+                            </div>
+                            {method.id === "bank-card" && (
+                              <div className="ml-auto flex space-x-1">
+                                <div className="w-8 h-5 bg-blue-600 rounded text-white text-xs flex items-center justify-center font-bold">
+                                  VISA
+                                </div>
+                                <div className="w-8 h-5 bg-red-600 rounded text-white text-xs flex items-center justify-center font-bold">
+                                  MC
+                                </div>
+                              </div>
+                            )}
+                          </label>
+                          {isDisabled && (
+                            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10">
+                              feature coming soon
+                              <div className="absolute left-1/2 -translate-x-1/2 top-full border-4 border-transparent border-t-gray-900"></div>
+                            </div>
+                          )}
                         </div>
-                        {method.id === "bank-card" && (
-                          <div className="ml-auto flex space-x-1">
-                            <div className="w-8 h-5 bg-blue-600 rounded text-white text-xs flex items-center justify-center font-bold">
-                              VISA
-                            </div>
-                            <div className="w-8 h-5 bg-red-600 rounded text-white text-xs flex items-center justify-center font-bold">
-                              MC
-                            </div>
-                          </div>
-                        )}
-                      </label>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
 

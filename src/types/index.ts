@@ -183,6 +183,8 @@ export interface Product extends BaseEntity, Slug {
   // Seller reference
   sellerId: string; // Reference to seller
   storeName?: string; // Store/vendor name from API
+  vendorLogo?: string; // Vendor logo URL (can be URL-encoded JSON string)
+  isSubaccountSet?: boolean; // Whether vendor has subaccount set up
 
   // Shipping
   shipping: Shipping;
@@ -371,4 +373,40 @@ export interface OrderSummary {
   shipping: number;
   tax: number;
   total: number;
+}
+
+// Rating types
+export interface VendorRating {
+  vendorId: string;
+  rating: number; // 1-5
+  comment: string;
+}
+
+export interface RateOrderRequest {
+  orderId: string;
+  ratings: VendorRating[];
+}
+
+export interface RateOrderResponse {
+  status: number;
+  error: boolean;
+  message: string;
+  data?: any;
+}
+
+export interface OrderRating {
+  id: string;
+  orderId: string;
+  vendorId: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface GetOrderRatingsResponse {
+  status: number;
+  error: boolean;
+  message: string;
+  data: OrderRating[];
 }

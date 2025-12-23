@@ -15,6 +15,8 @@ export const useCart = () => {
     serverItems,
     isOpen,
     isLoading,
+    isInitialLoading,
+    updatingItems,
     error,
     addItem: storeAddItem,
     removeItem: storeRemoveItem,
@@ -22,6 +24,7 @@ export const useCart = () => {
     clearCart: storeClearCart,
     toggleCart,
     getItems,
+    getAvailableItems,
     getTotalItems,
     getTotalPrice,
     getSubtotal,
@@ -56,6 +59,7 @@ export const useCart = () => {
 
   // Computed values
   const items = getItems(isAuthenticated);
+  const availableItems = getAvailableItems(isAuthenticated);
   const totalItems = getTotalItems(isAuthenticated);
   const totalPrice = getTotalPrice(isAuthenticated);
   const subtotal = getSubtotal(isAuthenticated);
@@ -90,6 +94,7 @@ export const useCart = () => {
   return {
     // Data
     items,
+    availableItems,
     totalItems,
     totalPrice,
     subtotal,
@@ -100,6 +105,8 @@ export const useCart = () => {
     // State
     isOpen,
     isLoading,
+    isInitialLoading,
+    updatingItems,
     isOperating: isLoading, // Alias for backward compatibility
     error,
     isAuthenticated,

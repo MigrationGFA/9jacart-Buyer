@@ -1,21 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Eye, Truck, CheckCircle, Clock } from 'lucide-react';
-import { Button, Card, CardContent, Badge } from '../UI';
-import { mockApi } from '../../data/mockData';
+import { useNavigate } from 'react-router-dom';
+import { Package, Eye, Truck, CheckCircle, Clock, Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button, Card, CardContent, Badge, Loading, Alert } from '../UI';
+import { orderApi, transformApiOrderToOrder } from '../../api/order';
 import type { Order } from '../../types';
 import { Link } from 'react-router-dom';
 
+const ORDERS_PER_PAGE = 8;
+
 const OrdersSection: React.FC = () => {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const ordersData = await mockApi.getOrders();
-        setOrders(ordersData);
-      } catch (error) {
-        console.error('Failed to fetch orders:', error);
+        setLoading(true);
+        setError(null);
+        const ordersData = await orderApi.getOrders();
+        
+        // Transform API response to Order type
+        const transformedOrders = ordersData.map(transformApiOrderToOrder);
+        setOrders(transformedOrders);
+      } catch (err: any) {
+        console.error('Failed to fetch orders:', err);
+        setError(err.message || 'Failed to load orders. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -24,16 +36,23 @@ const OrdersSection: React.FC = () => {
     fetchOrders();
   }, []);
 
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: 'NGN'
+    }).format(price);
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'delivered':
-        return <CheckCircle className="w-4 h-4 text-green-500" />;
+        return <CheckCircle className="w-5 h-5 text-green-500" />;
       case 'shipped':
-        return <Truck className="w-4 h-4 text-blue-500" />;
+        return <Truck className="w-5 h-5 text-blue-500" />;
       case 'processing':
-        return <Clock className="w-4 h-4 text-yellow-500" />;
+        return <Package className="w-5 h-5 text-yellow-500" />;
       default:
-        return <Package className="w-4 h-4 text-gray-500" />;
+        return <Clock className="w-5 h-5 text-gray-500" />;
     }
   };
 
@@ -50,41 +69,24 @@ const OrdersSection: React.FC = () => {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+  // Calculate pagination
+  const totalPages = Math.ceil(orders.length / ORDERS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ORDERS_PER_PAGE;
+  const endIndex = startIndex + ORDERS_PER_PAGE;
+  const paginatedOrders = orders.slice(startIndex, endIndex);
+
+  // Reset to page 1 when orders change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [orders.length]);
 
   if (loading) {
     return (
       <div className="space-y-6">
         <h2 className="text-2xl font-semibold text-foreground">My Orders</h2>
         <div className="flex items-center justify-center py-12">
-          <div className="text-muted-foreground">Loading orders...</div>
+          <Loading size="lg" />
         </div>
-      </div>
-    );
-  }
-
-  if (orders.length === 0) {
-    return (
-      <div className="space-y-6">
-        <h2 className="text-2xl font-semibold text-foreground">My Orders</h2>
-        <Card>
-          <CardContent className="p-12 text-center">
-            <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-foreground mb-2">No orders yet</h3>
-            <p className="text-muted-foreground mb-6">
-              When you place your first order, it will appear here.
-            </p>
-            <Button asChild>
-              <Link to="/products">Start Shopping</Link>
-            </Button>
-          </CardContent>
-        </Card>
       </div>
     );
   }
@@ -94,89 +96,171 @@ const OrdersSection: React.FC = () => {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold text-foreground">My Orders</h2>
         <div className="text-sm text-muted-foreground">
-          {orders.length} order{orders.length !== 1 ? 's' : ''}
+          {orders.length > 0 && (
+            <>
+              Showing {startIndex + 1}-{Math.min(endIndex, orders.length)} of {orders.length} order{orders.length !== 1 ? 's' : ''}
+            </>
+          )}
+          {orders.length === 0 && 'No orders'}
         </div>
       </div>
 
-      <div className="space-y-4">
-        {orders.map((order) => (
-          <Card key={order.id}>
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-medium text-foreground">Order #{order.id}</h3>
-                    <Badge className={getStatusColor(order.status)}>
-                      <div className="flex items-center gap-1">
-                        {getStatusIcon(order.status)}
-                        <span className="capitalize">{order.status}</span>
-                      </div>
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Placed on {formatDate(order.createdAt)}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium text-foreground">
-                    ${order.total.toFixed(2)}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {order.items.length} item{order.items.length !== 1 ? 's' : ''}
-                  </p>
-                </div>
-              </div>
+      {/* Error Message */}
+      {error && (
+        <Alert variant="destructive" title="Error loading orders">
+          {error}
+        </Alert>
+      )}
 
-              <div className="space-y-3 mb-4">
-                {order.items.slice(0, 2).map((item) => (
-                  <div key={item.id} className="flex items-center gap-3">
-                    <img
-                      src={item.product.images.main}
-                      alt={item.product.name}
-                      className="w-12 h-12 object-cover rounded-md"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-foreground truncate">
-                        {item.product.name}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Qty: {item.quantity} × ${item.product.price.current.toFixed(2)}
+      {/* Orders List */}
+      {!loading && !error && (
+        <div className="space-y-6">
+          {orders.length > 0 ? (
+            <>
+              {paginatedOrders.map((order) => (
+              <Card key={order.id}>
+                <CardContent className="p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        Order #{order.id}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        Placed on {new Date(order.createdAt).toLocaleDateString()}
                       </p>
                     </div>
+                    <div className="flex items-center space-x-3 mt-2 sm:mt-0">
+                      {getStatusIcon(order.status)}
+                      <Badge className={getStatusColor(order.status)}>
+                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                      </Badge>
+                    </div>
                   </div>
-                ))}
-                {order.items.length > 2 && (
-                  <p className="text-sm text-muted-foreground">
-                    +{order.items.length - 2} more item{order.items.length - 2 !== 1 ? 's' : ''}
-                  </p>
-                )}
-              </div>
 
-              <div className="flex items-center justify-between pt-4 border-t border-border">
-                <div className="text-sm text-muted-foreground">
-                  Deliver to: {order.shippingAddress.city}, {order.shippingAddress.state}
-                </div>
-                <div className="flex gap-2">
-                  {order.status === 'shipped' && (
-                    <Button variant="outline" size="sm" asChild>
-                      <Link to={`/track-order/${order.id}`}>
-                        <Truck className="w-4 h-4 mr-1" />
-                        Track Order
-                      </Link>
-                    </Button>
-                  )}
-                  <Button variant="outline" size="sm" asChild>
-                    <Link to={`/orders/${order.id}`}>
-                      <Eye className="w-4 h-4 mr-1" />
-                      View Details
-                    </Link>
+                  {/* Order Items */}
+                  <div className="space-y-3 mb-4">
+                    {order.items.map((item) => (
+                      <div key={item.id} className="flex items-center space-x-4">
+                        <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                          <img
+                            src={item.product.images.main}
+                            alt={item.product.images.alt}
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-sm font-medium text-gray-900 truncate">
+                            {item.product.name}
+                          </h4>
+                          <p className="text-sm text-gray-500">
+                            Quantity: {item.quantity}
+                          </p>
+                        </div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {formatPrice(
+                            typeof item.product.price === 'number' 
+                              ? item.product.price 
+                              : item.product.price.current
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Order Footer */}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-4 border-t border-gray-200">
+                    <div className="text-lg font-semibold text-gray-900 mb-2 sm:mb-0">
+                      Total: {formatPrice(order.total)}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button variant="outline" size="sm" asChild>
+                        <Link to={`/orders/${order.id}`}>
+                          View Details
+                        </Link>
+                      </Button>
+                      {order.status === 'delivered' && (
+                        <Button 
+                          variant="default" 
+                          size="sm"
+                          onClick={() => navigate(`/orders/${order.id}`, { state: { openRating: true } })}
+                          className="bg-primary hover:bg-primary/90"
+                        >
+                          <Star className="w-4 h-4 mr-1" />
+                          Rate Order
+                        </Button>
+                      )}
+                      <Button variant="outline" size="sm" asChild>
+                        <Link to={`/track-order/${order.id}`}>
+                          Track Order
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              ))}
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-2 mt-8 pt-6 border-t border-gray-200">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (currentPage > 1) {
+                        setCurrentPage(currentPage - 1);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }
+                    }}
+                    disabled={currentPage <= 1}
+                    className="flex items-center gap-1"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Previous
+                  </Button>
+                  
+                  <span className="px-4 py-2 text-sm text-gray-600">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (currentPage < totalPages) {
+                        setCurrentPage(currentPage + 1);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }
+                    }}
+                    disabled={currentPage >= totalPages}
+                    className="flex items-center gap-1"
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4" />
                   </Button>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              )}
+            </>
+          ) : (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  No orders yet
+                </h3>
+                <p className="text-gray-500 mb-6">
+                  When you place your first order, it will appear here.
+                </p>
+                <Button asChild>
+                  <Link to="/products">
+                    Start Shopping
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
     </div>
   );
 };

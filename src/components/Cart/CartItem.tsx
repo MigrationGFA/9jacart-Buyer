@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Minus, Plus, Trash2, Heart, Star } from "lucide-react";
 import { Button, Badge, Image } from "../UI";
@@ -20,6 +20,15 @@ const CartItem: React.FC<CartItemProps> = ({
 }) => {
   const { updateCartItemQuantity, isOperating } = useCart();
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isItemInWishlist } = useWishlistStore();
+  const [quantityInput, setQuantityInput] = useState<string>(item.quantity.toString());
+  const [isEditing, setIsEditing] = useState(false);
+
+  // Sync input with item quantity when it changes externally
+  useEffect(() => {
+    if (!isEditing) {
+      setQuantityInput(item.quantity.toString());
+    }
+  }, [item.quantity, isEditing]);
 
   const product = item.product;
   const isWishlisted = isItemInWishlist(product.id);
@@ -36,6 +45,44 @@ const CartItem: React.FC<CartItemProps> = ({
       return;
     }
     await updateCartItemQuantity(product.id, newQuantity);
+  };
+
+  const handleQuantityInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Allow empty string, numbers, and prevent negative numbers
+    if (value === "" || /^\d+$/.test(value)) {
+      setQuantityInput(value);
+    }
+  };
+
+  const handleQuantityInputBlur = () => {
+    setIsEditing(false);
+    const numValue = parseInt(quantityInput, 10);
+    
+    if (isNaN(numValue) || numValue < 1) {
+      // Reset to current quantity if invalid
+      setQuantityInput(item.quantity.toString());
+      if (numValue === 0) {
+        onRemove?.(product.id);
+      }
+    } else if (numValue !== item.quantity) {
+      // Only update if the value actually changed
+      handleQuantityChange(numValue);
+    }
+  };
+
+  const handleQuantityInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.currentTarget.blur();
+    } else if (e.key === "Escape") {
+      setQuantityInput(item.quantity.toString());
+      setIsEditing(false);
+      e.currentTarget.blur();
+    }
+  };
+
+  const handleQuantityInputFocus = () => {
+    setIsEditing(true);
   };
 
   const formatPrice = (price: number) => {
@@ -82,13 +129,20 @@ const CartItem: React.FC<CartItemProps> = ({
       {/* Product Details */}
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-start mb-2">
-          <div>
-            <Link
-              to={`/products/${product.id}`}
-              className="font-medium text-gray-900 hover:text-primary transition-colors line-clamp-2"
-            >
-              {product.name}
-            </Link>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start gap-2">
+              <Link
+                to={`/products/${product.id}`}
+                className="font-medium text-gray-900 hover:text-primary transition-colors line-clamp-2 flex-1"
+              >
+                {product.name}
+              </Link>
+              {product.isSubaccountSet === false && (
+                <Badge variant="destructive" className="text-xs flex-shrink-0">
+                  Product not available
+                </Badge>
+              )}
+            </div>
             {product.storeName && (
               <p className="text-sm text-gray-500 mt-1">
                 <span className="font-medium">{product.storeName}</span>
@@ -147,9 +201,18 @@ const CartItem: React.FC<CartItemProps> = ({
               >
                 <Minus className="w-3 h-3" />
               </Button>
-              <span className="px-4 py-2 sm:px-3 sm:py-1 text-sm font-medium min-w-[3rem] text-center">
-                {item.quantity}
-              </span>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={quantityInput}
+                onChange={handleQuantityInputChange}
+                onBlur={handleQuantityInputBlur}
+                onFocus={handleQuantityInputFocus}
+                onKeyDown={handleQuantityInputKeyDown}
+                className="w-12 sm:w-10 px-2 py-2 sm:py-1 text-sm font-medium text-center border-0 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset bg-transparent"
+                disabled={isOperating}
+                aria-label="Quantity"
+              />
               <Button
                 variant="ghost"
                 size="icon"

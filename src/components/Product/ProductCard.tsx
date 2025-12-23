@@ -29,6 +29,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   const isWishlisted = isItemInWishlist(product.id);
 
+  // Use product reviews (API ratings archived)
+  const displayReviews = product.reviews;
+
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -311,9 +314,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
             </h3>
 
             {/* Reviews */}
-            {product.reviews.total > 0 && (
+            {displayReviews && displayReviews.total > 0 && (
               <div className="flex items-center">
-                {renderStars(product.reviews.average, product.reviews.total)}
+                {renderStars(displayReviews.average, displayReviews.total)}
               </div>
             )}
 

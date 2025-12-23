@@ -97,7 +97,7 @@ const ContactAdminPage: React.FC = () => {
             <span>/</span>
             <Link to="/account" className="hover:text-foreground">My Account</Link>
             <span>/</span>
-            <span className="text-foreground">Contact Admin</span>
+            <span className="text-foreground">Contact Support</span>
           </div>
         </div>
 
@@ -105,7 +105,7 @@ const ContactAdminPage: React.FC = () => {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <MessageSquare className="w-8 h-8 text-primary" />
-            <h1 className="text-3xl font-semibold text-foreground">Contact Admin</h1>
+            <h1 className="text-3xl font-semibold text-foreground">Contact Support</h1>
           </div>
           <p className="text-muted-foreground">
             Have a question or need assistance? Send us a message and we'll get back to you as soon as possible.

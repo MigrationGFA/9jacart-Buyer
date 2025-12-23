@@ -15,6 +15,83 @@ const generateSlug = (name: string): string => {
     .replace(/(^-|-$)/g, '');
 };
 
+// Helper function to parse vendorLogo from URL-encoded JSON string
+const parseVendorLogo = (vendorLogo?: string): string | undefined => {
+  if (!vendorLogo) return undefined;
+  
+  try {
+    // Check if vendorLogo is a URL with encoded JSON in the path
+    // Format: https://api.9jacart.ng/%7B%22original%22:...%7D
+    if (vendorLogo.startsWith('https://api.9jacart.ng/') || vendorLogo.startsWith('http://api.9jacart.ng/')) {
+      // Extract everything after the domain (including the encoded JSON)
+      const pathStart = vendorLogo.indexOf('/', vendorLogo.indexOf('//') + 2);
+      if (pathStart !== -1) {
+        const encodedPath = vendorLogo.substring(pathStart + 1);
+        
+        // Decode the URL-encoded path
+        const decoded = decodeURIComponent(encodedPath);
+        
+        // Check if decoded path is a JSON string
+        if (decoded.trim().startsWith('{')) {
+          const logoData = JSON.parse(decoded);
+          // Prefer large, then medium, then original, then thumbnail
+          const logoUrl = logoData.large || logoData.medium || logoData.original || logoData.thumbnail;
+          
+          if (logoUrl) {
+            // Normalize path separators and construct full URL
+            const normalizedPath = logoUrl.replace(/\\/g, '/');
+            if (normalizedPath.startsWith('public/')) {
+              return `https://api.9jacart.ng/${normalizedPath}`;
+            }
+            // If it's already a full URL, return as is
+            if (normalizedPath.startsWith('http://') || normalizedPath.startsWith('https://')) {
+              return normalizedPath;
+            }
+            // Otherwise, assume it's relative to the API base
+            return `https://api.9jacart.ng/${normalizedPath}`;
+          }
+        }
+      }
+    }
+    
+    // Try to decode the entire string if it's URL-encoded JSON (without domain)
+    try {
+      const decoded = decodeURIComponent(vendorLogo);
+      if (decoded.trim().startsWith('{')) {
+        const logoData = JSON.parse(decoded);
+        const logoUrl = logoData.large || logoData.medium || logoData.original || logoData.thumbnail;
+        
+        if (logoUrl) {
+          const normalizedPath = logoUrl.replace(/\\/g, '/');
+          if (normalizedPath.startsWith('public/')) {
+            return `https://api.9jacart.ng/${normalizedPath}`;
+          }
+          if (normalizedPath.startsWith('http://') || normalizedPath.startsWith('https://')) {
+            return normalizedPath;
+          }
+          return `https://api.9jacart.ng/${normalizedPath}`;
+        }
+      }
+    } catch (e) {
+      // Not a JSON string, continue
+    }
+    
+    // If it's already a valid URL, return as is
+    if (vendorLogo.startsWith('http://') || vendorLogo.startsWith('https://')) {
+      return vendorLogo;
+    }
+    
+    return undefined;
+  } catch (error) {
+    console.warn('Failed to parse vendorLogo:', error, vendorLogo);
+    // If parsing fails but it looks like a URL, return it
+    if (vendorLogo.startsWith('http://') || vendorLogo.startsWith('https://')) {
+      return vendorLogo;
+    }
+    return undefined;
+  }
+};
+
 // Map API product data to internal Product type
 export const mapApiProductToProduct = (apiProduct: ApiProductData): Product => {
   const unitPrice = parseFloat(apiProduct.unitPrice);
@@ -93,6 +170,8 @@ export const mapApiProductToProduct = (apiProduct: ApiProductData): Product => {
     reviews,
     sellerId: apiProduct.storeName || 'api-seller', // Use storeName as sellerId
     storeName: apiProduct.storeName, // Store/vendor name from API
+    vendorLogo: parseVendorLogo(apiProduct.vendorLogo), // Parse and extract vendor logo URL
+    isSubaccountSet: apiProduct.isSubaccountSet, // Preserve subaccount status
     shipping: {
       weight: undefined,
       dimensions: undefined,

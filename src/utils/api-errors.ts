@@ -31,8 +31,17 @@ export const apiErrorUtils = {
           if (messages.currentPassword) {
             return messages.currentPassword;
           }
+          if (messages.streetAddress) {
+            return messages.streetAddress;
+          }
           if (messages.error) {
             return messages.error;
+          }
+          
+          // Return first available message if none of the specific fields match
+          const firstMessage = Object.values(messages)[0];
+          if (firstMessage && typeof firstMessage === 'string') {
+            return firstMessage;
           }
         }
       }

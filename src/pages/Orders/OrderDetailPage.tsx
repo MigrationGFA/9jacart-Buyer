@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   CheckCircle,
   Package,
@@ -10,17 +10,22 @@ import {
   Calendar,
   ArrowLeft,
   FileText,
+  Star,
 } from 'lucide-react';
 import { Button, Card, CardContent, Badge, Loading, Alert, Image } from '../../components/UI';
+import { RatingModal, RatingDisplay } from '../../components/Rating';
 import { orderApi, type OrderDetailResponse } from '../../api/order';
 import { cn } from '../../lib/utils';
 
 const OrderDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [orderDetails, setOrderDetails] = useState<OrderDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+  const [refreshRatings, setRefreshRatings] = useState(0);
 
   useEffect(() => {
     const loadOrderDetails = async () => {
@@ -49,6 +54,15 @@ const OrderDetailPage: React.FC = () => {
 
     loadOrderDetails();
   }, [id]);
+
+  // Check if we should auto-open rating modal
+  useEffect(() => {
+    if (location.state?.openRating && !loading && orderDetails) {
+      setIsRatingModalOpen(true);
+      // Clear the state
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, loading, orderDetails]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-NG', {
@@ -421,15 +435,54 @@ const OrderDetailPage: React.FC = () => {
                 </Button>
               )}
               {orderDetails.status.toLowerCase() === 'delivered' && (
-                <Button variant="outline" className="w-full">
-                  <Package className="w-4 h-4 mr-2" />
-                  Return Items
-                </Button>
+                <>
+                  <Button 
+                    variant="default" 
+                    className="w-full"
+                    onClick={() => setIsRatingModalOpen(true)}
+                  >
+                    <Star className="w-4 h-4 mr-2" />
+                    Rate Order
+                  </Button>
+                  <Button variant="outline" className="w-full">
+                    <Package className="w-4 h-4 mr-2" />
+                    Return Items
+                  </Button>
+                </>
               )}
             </div>
+
+            {/* Ratings Display */}
+            {orderId && orderId !== 'N/A' && (
+              <Card>
+                <CardContent className="p-6">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                    Ratings & Reviews
+                  </h2>
+                  <RatingDisplay 
+                    orderId={orderId} 
+                    key={refreshRatings}
+                  />
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Rating Modal */}
+      {orderDetails && orderId && orderId !== 'N/A' && (
+        <RatingModal
+          isOpen={isRatingModalOpen}
+          onClose={() => setIsRatingModalOpen(false)}
+          orderId={orderId}
+          orderItems={orderDetails.items || []}
+          onRatingSubmitted={() => {
+            setRefreshRatings(prev => prev + 1);
+            setIsRatingModalOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 };
