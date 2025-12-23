@@ -33,7 +33,7 @@ interface CartStore {
   clearCart: (isAuthenticated?: boolean) => Promise<void>;
   
   // Authentication methods
-  loadServerCart: (isInitial?: boolean) => Promise<void>;
+  loadServerCart: (isInitial?: boolean, skipVerification?: boolean) => Promise<void>;
   migrateGuestCartOnLogin: () => Promise<void>;
   clearGuestCart: () => void;
   handleLogout: () => void;
@@ -53,6 +53,7 @@ interface CartStore {
   
   // Internal helpers
   _mapApiItemToCartItem: (apiItem: ApiCartItem, product?: Product) => CartItem;
+  _getAvailableItems: (items: CartItem[]) => CartItem[];
 }
 
 export const useCartStore = create<CartStore>()(
@@ -641,13 +642,13 @@ export const useCartStore = create<CartStore>()(
   getTotalItems: (isAuthenticated: boolean) => {
     const items = get().getItems(isAuthenticated);
     const availableItems = get()._getAvailableItems(items);
-    return availableItems.reduce((total, item) => total + item.quantity, 0);
+    return availableItems.reduce((total: number, item: CartItem) => total + item.quantity, 0);
   },
 
   getTotalPrice: (isAuthenticated: boolean) => {
     const items = get().getItems(isAuthenticated);
     const availableItems = get()._getAvailableItems(items);
-    return availableItems.reduce((total, item) => {
+    return availableItems.reduce((total: number, item: CartItem) => {
       const price = typeof item.product.price === 'number' ? item.product.price : item.product.price.current;
       return total + (price * item.quantity);
     }, 0);

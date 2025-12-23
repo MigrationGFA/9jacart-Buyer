@@ -11,7 +11,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { productsApi } from '../../../api/products';
+// import { productsApi } from '../../../api/products'; // Archived - no longer used
 import type { ProductReviews } from '../../../types';
 
 interface UseProductRatingsResult {
@@ -45,17 +45,12 @@ export const useProductRatings = (
     setError(null);
 
     try {
-      const response = await productsApi.getProductRatings(productId);
+      // NOTE: getProductRatings method no longer exists in productsApi
+      // This archived hook is kept for reference only
+      // const response = await productsApi.getProductRatings(productId);
       
-      if (response.error === false && response.data) {
-        setReviews({
-          average: response.data.average || 0,
-          total: response.data.total || 0,
-        });
-      } else {
-        // If API returns error or no data, set to null (will use fallback)
-        setReviews(null);
-      }
+      // If API returns error or no data, set to null (will use fallback)
+      setReviews(null);
     } catch (err: any) {
       // Silently handle errors - API endpoint may not exist yet
       // Component will use fallback ratings from product.reviews

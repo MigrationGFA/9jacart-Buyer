@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Package, Eye, Truck, CheckCircle, Clock, Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Package, Truck, CheckCircle, Clock, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button, Card, CardContent, Badge, Loading, Alert } from '../UI';
 import { orderApi, transformApiOrderToOrder } from '../../api/order';
 import type { Order } from '../../types';

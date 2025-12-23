@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Star, X } from 'lucide-react';
+import { Star } from 'lucide-react';
 import { Button, Modal, Loading } from '../UI';
 import { cn } from '../../lib/utils';
 import { orderApi } from '../../api/order';
