@@ -893,7 +893,7 @@ const CheckoutPage: React.FC = () => {
                               type="button"
                               size="sm"
                               onClick={handleChangeAddress}
-                              className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white"
+                              className="flex items-center gap-1 bg-[#8DEB6E] hover:bg-[#8DEB6E]/90 text-primary"
                             >
                               Choose existing Address
                             </Button>
@@ -1111,11 +1111,11 @@ const CheckoutPage: React.FC = () => {
                 <Button
                   onClick={handlePlaceOrder}
                   disabled={isProcessing}
-                  className="w-full mt-8 bg-green-600 hover:bg-green-700 text-white py-3 text-base font-medium"
+                  className="w-full mt-8 bg-[#8DEB6E] hover:bg-[#8DEB6E]/90 text-primary py-3 text-base font-medium"
                 >
                   {isProcessing ? (
                     <div className="flex items-center justify-center space-x-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
                       <span>Processing...</span>
                     </div>
                   ) : (

@@ -343,7 +343,7 @@ const TrackOrderPage: React.FC = () => {
                   {/* Progress Line */}
                   <div className="absolute left-6 top-12 bottom-0 w-0.5 bg-gray-200"></div>
                   <div
-                    className="absolute left-6 top-12 w-0.5 bg-green-500 transition-all duration-500"
+                    className="absolute left-6 top-12 w-0.5 bg-[#8DEB6E] transition-all duration-500"
                     style={{
                       height: `${
                         (Math.max(
@@ -365,9 +365,9 @@ const TrackOrderPage: React.FC = () => {
                           className={cn(
                             "flex items-center justify-center w-12 h-12 rounded-full border-2 bg-white z-10",
                             step.completed
-                              ? "border-green-500 bg-green-50 text-green-500"
+                              ? "border-[#8DEB6E] bg-[#8DEB6E]/10 text-[#8DEB6E]"
                               : step.current
-                              ? "border-yellow-500 bg-yellow-50 text-yellow-600"
+                              ? "border-gray-500 bg-gray-50 text-gray-600"
                               : "border-gray-300 text-gray-400"
                           )}
                         >
@@ -377,7 +377,7 @@ const TrackOrderPage: React.FC = () => {
                             <div
                               className={cn(
                                 "w-3 h-3 rounded-full",
-                                step.current ? "bg-yellow-500" : "bg-gray-300"
+                                step.current ? "bg-gray-500" : "bg-gray-300"
                               )}
                             />
                           )}
@@ -603,16 +603,16 @@ const TrackOrderPage: React.FC = () => {
                             className={cn(
                               "w-4 h-4 rounded-full flex items-center justify-center border-2",
                               step.completed
-                                ? "bg-green-500 border-green-500"
+                                ? "bg-[#8DEB6E] border-[#8DEB6E]"
                                 : step.current
-                                ? "border-yellow-500"
+                                ? "border-gray-500"
                                 : "border-gray-300"
                             )}
                           >
                             {step.completed ? (
                               <CheckCircle className="w-3 h-3 text-white" />
                             ) : step.current ? (
-                              <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                              <div className="w-2 h-2 rounded-full bg-gray-500" />
                             ) : null}
                           </div>
                           <span

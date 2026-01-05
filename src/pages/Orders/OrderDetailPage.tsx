@@ -13,7 +13,7 @@ import {
   Star,
 } from 'lucide-react';
 import { Button, Card, CardContent, Badge, Loading, Alert, Image } from '../../components/UI';
-import { RatingModal, RatingDisplay } from '../../components/Rating';
+import { RatingModal } from '../../components/Rating';
 import { orderApi, type OrderDetailResponse } from '../../api/order';
 import { cn } from '../../lib/utils';
 
@@ -25,7 +25,6 @@ const OrderDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
-  const [refreshRatings, setRefreshRatings] = useState(0);
 
   useEffect(() => {
     const loadOrderDetails = async () => {
@@ -451,21 +450,6 @@ const OrderDetailPage: React.FC = () => {
                 </>
               )}
             </div>
-
-            {/* Ratings Display */}
-            {orderId && orderId !== 'N/A' && (
-              <Card>
-                <CardContent className="p-6">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                    Ratings & Reviews
-                  </h2>
-                  <RatingDisplay 
-                    orderId={orderId} 
-                    key={refreshRatings}
-                  />
-                </CardContent>
-              </Card>
-            )}
           </div>
         </div>
       </div>
@@ -478,7 +462,6 @@ const OrderDetailPage: React.FC = () => {
           orderId={orderId}
           orderItems={orderDetails.items || []}
           onRatingSubmitted={() => {
-            setRefreshRatings(prev => prev + 1);
             setIsRatingModalOpen(false);
           }}
         />
