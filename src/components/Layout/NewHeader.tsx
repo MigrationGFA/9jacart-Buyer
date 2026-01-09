@@ -335,11 +335,11 @@ const NewHeader: React.FC = () => {
             <form onSubmit={handleSearch} className="flex-1 max-w-2xl min-w-0">
               <div className="flex rounded-md overflow-hidden bg-white">
                 {/* Category Dropdown */}
-                <div className="relative flex-shrink-0">
+                <div className="relative flex-shrink-0 bg-primary">
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="bg-primary text-primary-foreground px-3 py-2 appearance-none pr-8 min-w-[100px] w-auto max-w-[140px] font-medium"
+                    className="bg-primary text-primary-foreground px-3 py-2 appearance-none pr-8 min-w-[100px] w-auto max-w-[140px] font-medium h-full border-0 outline-none"
                   >
                     {categories.map((category) => (
                       <option key={category} value={category}>
@@ -537,11 +537,11 @@ const NewHeader: React.FC = () => {
             <form onSubmit={handleSearch} className="w-full">
               <div className="flex rounded-md overflow-hidden bg-white">
                 {/* Category Dropdown - Mobile */}
-                <div className="relative flex-shrink-0">
+                <div className="relative flex-shrink-0 bg-primary">
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="bg-primary text-primary-foreground px-2 sm:px-3 py-2 text-xs sm:text-sm appearance-none pr-6 sm:pr-8 min-w-[80px] w-auto font-medium"
+                    className="bg-primary text-primary-foreground px-2 sm:px-3 py-2 text-xs sm:text-sm appearance-none pr-6 sm:pr-8 min-w-[80px] w-auto font-medium h-full border-0 outline-none"
                   >
                     {categories.slice(0, 6).map((category) => (
                       <option key={category} value={category}>

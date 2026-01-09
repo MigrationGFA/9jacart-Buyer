@@ -1,6 +1,6 @@
 // import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
+import { Facebook, Twitter, Instagram, Linkedin, MapPinCheck, Phone, Mail } from 'lucide-react';
 // import { Button } from '../UI/Button';
 import logoImage from '../../assets/logo.png';
 
@@ -96,9 +96,18 @@ const Footer: React.FC = () => {
           <div>
             <h4 className="text-white font-semibold mb-4">Reach Us</h4>
             <div className="space-y-2 text-sm text-gray-300">
-              <p>Office Address: 1, Oregun Way. Ikeja. Lagos State</p>
-            <p className="mt-3">Email: info@9jacarts.com</p>
-              <p>Contact Number: 07055559966, 07054449966</p>
+              <p className="flex items-start gap-2">
+                <MapPinCheck className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <span>Office Address: 1, Oregun Way. Ikeja. Lagos State</span>
+              </p>
+              <p className="flex items-start gap-2 mt-3">
+                <Mail className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <span>Email: info@9jacarts.com</span>
+              </p>
+              <p className="flex items-start gap-2">
+                <Phone className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <span>Contact Number: 07055559966, 07054449966</span>
+              </p>
             </div>
           </div>
 
