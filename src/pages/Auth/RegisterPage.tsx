@@ -105,7 +105,7 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="border border-[#C8E6C8] rounded-lg p-8 bg-[#F0FBF0] shadow-sm">
+    <div className="border border-[#C8E6C8] rounded-lg p-8 bg-[#F8FEF8] shadow-sm">
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Create your account</h1>
         <p className="mt-2 text-sm text-gray-600">
@@ -270,7 +270,7 @@ const RegisterPage: React.FC = () => {
             <div className="w-full border-t border-gray-300"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-[#F0FBF0] text-gray-500">Or continue with</span>
+            <span className="px-2 bg-[#F8FEF8] text-gray-500">Or continue with</span>
           </div>
         </div>
 

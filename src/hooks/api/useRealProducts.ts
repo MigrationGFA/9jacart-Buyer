@@ -346,6 +346,7 @@ export const useRealProductsByCategory = (categoryId: string | null, params: Omi
 
   return {
     products,
+    allProducts,
     loading,
     error,
     pagination,

@@ -1,7 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { Breadcrumb, Loading, Alert } from '../../components/UI';
 import ProductCard from '../../components/Product/ProductCard';
+import CategoriesSidebar from '../../components/HomePage/CategoriesSidebar';
 import { useRealProductsList } from '../../hooks/api/useRealProducts';
+import { useAllRealCategories } from '../../hooks/api/useRealCategories';
 import { normalizeProductImages } from '@/lib/utils';
 
 const DealsPage: React.FC = () => {
@@ -20,6 +22,8 @@ const DealsPage: React.FC = () => {
     ...(searchQuery && { search: searchQuery })
   });
 
+  const { categories, loading: categoriesLoading, error: categoriesError } = useAllRealCategories();
+
   // Filter products that have discounts
   const dealsProducts = useMemo(() => {
     return allProducts.filter(product => product.price.discount !== undefined);
@@ -33,18 +37,7 @@ const DealsPage: React.FC = () => {
   }, [dealsProducts, currentPage]);
 
   const totalDealsPages = Math.ceil(dealsProducts.length / 12);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-center py-12">
-            <Loading size="lg" />
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const isInitialLoad = loading && allProducts.length === 0;
 
   if (error) {
     return (
@@ -96,63 +89,91 @@ const DealsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Products Grid */}
-        {paginatedDeals.length > 0 ? (
-          <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-              {paginatedDeals.map((product) => (
-                <ProductCard 
-                  key={product.id} 
-                  product={normalizeProductImages(product)}
-                  showQuickAdd={true}
-                  className="w-full"
-                />
-              ))}
+        {/* Main Content with Sidebar */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-5 gap-6 items-start">
+          {/* Categories Sidebar */}
+          {categoriesLoading ? (
+            <div className="hidden lg:block lg:col-span-1 pr-4 lg:pr-6">
+              <div className="sticky top-4 flex items-center justify-center py-8">
+                <Loading size="sm" />
+              </div>
             </div>
+          ) : categoriesError ? (
+            <div className="hidden lg:block lg:col-span-1 pr-4 lg:pr-6">
+              <div className="sticky top-4 text-center py-8">
+                <p className="text-sm text-gray-500">Categories unavailable</p>
+              </div>
+            </div>
+          ) : (
+            <CategoriesSidebar categories={categories} />
+          )}
 
-            {/* Pagination */}
-            {totalDealsPages > 1 && (
-              <div className="flex justify-center items-center gap-2 mt-8">
-                <button
-                  onClick={() => {
-                    if (currentPage > 1) {
-                      setCurrentPage(currentPage - 1);
-                    }
-                  }}
-                  disabled={currentPage <= 1}
-                  className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                >
-                  Previous
-                </button>
-                
-                <span className="px-4 py-2 text-sm text-gray-600">
-                  Page {currentPage} of {totalDealsPages}
-                </span>
-                
-                <button
-                  onClick={() => {
-                    if (currentPage < totalDealsPages) {
-                      setCurrentPage(currentPage + 1);
-                    }
-                  }}
-                  disabled={currentPage >= totalDealsPages}
-                  className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                >
-                  Next
-                </button>
+          {/* Products Content */}
+          <div className="lg:col-span-3 xl:col-span-4">
+            {isInitialLoad ? (
+              <div className="flex items-center justify-center min-h-[400px]">
+                <Loading size="lg" />
+              </div>
+            ) : paginatedDeals.length > 0 ? (
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+                  {paginatedDeals.map((product) => (
+                    <ProductCard 
+                      key={product.id} 
+                      product={normalizeProductImages(product)}
+                      showQuickAdd={true}
+                      className="w-full"
+                    />
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                {totalDealsPages > 1 && (
+                  <div className="flex justify-center items-center gap-2 mt-8">
+                    <button
+                      onClick={() => {
+                        if (currentPage > 1) {
+                          setCurrentPage(currentPage - 1);
+                        }
+                      }}
+                      disabled={currentPage <= 1}
+                      className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                    >
+                      Previous
+                    </button>
+                    
+                    <span className="px-4 py-2 text-sm text-gray-600">
+                      Page {currentPage} of {totalDealsPages}
+                    </span>
+                    
+                    <button
+                      onClick={() => {
+                        if (currentPage < totalDealsPages) {
+                          setCurrentPage(currentPage + 1);
+                        }
+                      }}
+                      disabled={currentPage >= totalDealsPages}
+                      className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                  <p className="text-gray-500 text-lg">No deals found</p>
+                  {searchQuery && (
+                    <p className="text-gray-400 mt-2">
+                      Try adjusting your search terms
+                    </p>
+                  )}
+                </div>
               </div>
             )}
-          </>
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No deals found</p>
-            {searchQuery && (
-              <p className="text-gray-400 mt-2">
-                Try adjusting your search terms
-              </p>
-            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

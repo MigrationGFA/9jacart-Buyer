@@ -32,7 +32,7 @@ const AuthLayout: React.FC = () => {
               to="/"
               className="transition-opacity hover:opacity-80"
             >
-              <img src={logoImage} alt="9ja-cart" className="h-10 w-auto" />
+              <img src={logoImage} alt="9ja-cart" className="h-20 w-auto opacity-50" />
             </Link>
           </div>
 

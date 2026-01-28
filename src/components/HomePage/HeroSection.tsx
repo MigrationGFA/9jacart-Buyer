@@ -55,7 +55,7 @@ const HeroSection: React.FC = () => {
             </div>
           </div>
         ) : (
-          <CategoriesSidebar categories={categories} />
+          <CategoriesSidebar categories={categories} showBorderRight />
         )}
         <HeroCarousel slides={slides} />
       </div>

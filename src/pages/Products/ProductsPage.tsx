@@ -98,13 +98,13 @@ const ProductsPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-5 gap-6 items-start">
           {/* Categories Sidebar */}
           {categoriesLoading ? (
-            <div className="hidden lg:block lg:col-span-1 border-r border-gray-200 pr-4 lg:pr-6">
+            <div className="hidden lg:block lg:col-span-1 pr-4 lg:pr-6">
               <div className="sticky top-4 flex items-center justify-center py-8">
                 <Loading size="sm" />
               </div>
             </div>
           ) : categoriesError ? (
-            <div className="hidden lg:block lg:col-span-1 border-r border-gray-200 pr-4 lg:pr-6">
+            <div className="hidden lg:block lg:col-span-1 pr-4 lg:pr-6">
               <div className="sticky top-4 text-center py-8">
                 <p className="text-sm text-gray-500">Categories unavailable</p>
               </div>

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useParams, Navigate } from "react-router-dom";
 import { Breadcrumb, Loading, Alert } from "../../components/UI";
 import ProductCard from "../../components/Product/ProductCard";
-import { useRealProductsByCategory } from "../../hooks/api/useRealProducts";
+import CategoriesSidebar from "../../components/HomePage/CategoriesSidebar";
+import { useRealProductsByCategory, useFeaturedProducts } from "../../hooks/api/useRealProducts";
 import { useAllRealCategories } from "../../hooks/api/useRealCategories";
 import { normalizeProductImages } from "@/lib/utils";
 
@@ -17,35 +18,48 @@ const CategoryPage: React.FC = () => {
     return <Navigate to="/services" replace />;
   }
 
-  const { categories } = useAllRealCategories();
+  const { categories, loading: categoriesLoading, error: categoriesError } = useAllRealCategories();
 
   const params = React.useMemo(
     () => ({ page: currentPage, perPage }),
     [currentPage, perPage]
   );
 
-  // Fetch products for the category
-  const { products, loading, error, pagination } = useRealProductsByCategory(
+  // Single fetch for category products; derive main list + Related Items from allProducts
+  const { products, allProducts, loading, error, pagination } = useRealProductsByCategory(
     categoryId || null,
     params
   );
+
+  const { products: featuredPool } = useFeaturedProducts(16);
 
   // Reset page when category changes
   useEffect(() => {
     setCurrentPage(1);
   }, [categoryId]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-center py-12">
-            <Loading size="lg" />
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const isInitialLoad = loading && products.length === 0;
+
+  const currentPageIds = React.useMemo(
+    () => new Set(products.map((p) => p.id)),
+    [products]
+  );
+  const filteredRelatedProducts = React.useMemo(() => {
+    return allProducts
+      .filter((p) => !currentPageIds.has(p.id))
+      .slice(0, 4);
+  }, [allProducts, currentPageIds]);
+
+  const fallbackRelatedProducts = React.useMemo(() => {
+    return featuredPool
+      .filter((p) => !currentPageIds.has(p.id))
+      .slice(0, 4);
+  }, [featuredPool, currentPageIds]);
+
+  const displayRelatedProducts = React.useMemo(() => {
+    if (filteredRelatedProducts.length > 0) return filteredRelatedProducts;
+    return fallbackRelatedProducts;
+  }, [filteredRelatedProducts, fallbackRelatedProducts]);
 
   if (error) {
     return (
@@ -100,60 +114,108 @@ const CategoryPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Products Grid */}
-        {products.length > 0 ? (
-          <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-              {products.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={normalizeProductImages(product)}
-                  showQuickAdd={true}
-                  className="w-full"
-                />
-              ))}
+        {/* Main Content with Sidebar */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-5 gap-6 items-start">
+          {/* Categories Sidebar */}
+          {categoriesLoading ? (
+            <div className="hidden lg:block lg:col-span-1 pr-4 lg:pr-6">
+              <div className="sticky top-4 flex items-center justify-center py-8">
+                <Loading size="sm" />
+              </div>
             </div>
+          ) : categoriesError ? (
+            <div className="hidden lg:block lg:col-span-1 pr-4 lg:pr-6">
+              <div className="sticky top-4 text-center py-8">
+                <p className="text-sm text-gray-500">Categories unavailable</p>
+              </div>
+            </div>
+          ) : (
+            <CategoriesSidebar categories={categories} />
+          )}
 
-            {/* Pagination */}
-            {pagination.totalPages > 1 && (
-              <div className="flex justify-center items-center gap-2 mt-8">
-                <button
-                  onClick={() => {
-                    if (currentPage > 1) {
-                      setCurrentPage(currentPage - 1);
-                    }
-                  }}
-                  disabled={currentPage <= 1}
-                  className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                >
-                  Previous
-                </button>
+          {/* Products Content */}
+          <div className="lg:col-span-3 xl:col-span-4">
+            {isInitialLoad ? (
+              <div className="flex items-center justify-center min-h-[400px]">
+                <Loading size="lg" />
+              </div>
+            ) : products.length > 0 ? (
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+                  {products.map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={normalizeProductImages(product)}
+                      showQuickAdd={true}
+                      className="w-full"
+                    />
+                  ))}
+                </div>
 
-                <span className="px-4 py-2 text-sm text-gray-600">
-                  Page {pagination.currentPage} of {pagination.totalPages}
-                </span>
+                {/* Pagination */}
+                {pagination.totalPages > 1 && (
+                  <div className="flex justify-center items-center gap-2 mt-8">
+                    <button
+                      onClick={() => {
+                        if (currentPage > 1) {
+                          setCurrentPage(currentPage - 1);
+                        }
+                      }}
+                      disabled={currentPage <= 1}
+                      className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                    >
+                      Previous
+                    </button>
 
-                <button
-                  onClick={() => {
-                    if (currentPage < pagination.totalPages) {
-                      setCurrentPage(currentPage + 1);
-                    }
-                  }}
-                  disabled={currentPage >= pagination.totalPages}
-                  className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                >
-                  Next
-                </button>
+                    <span className="px-4 py-2 text-sm text-gray-600">
+                      Page {pagination.currentPage} of {pagination.totalPages}
+                    </span>
+
+                    <button
+                      onClick={() => {
+                        if (currentPage < pagination.totalPages) {
+                          setCurrentPage(currentPage + 1);
+                        }
+                      }}
+                      disabled={currentPage >= pagination.totalPages}
+                      className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                  <p className="text-gray-500 text-lg">
+                    No products found in this category
+                  </p>
+                </div>
               </div>
             )}
-          </>
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">
-              No products found in this category
-            </p>
+
+            {/* Related Items: same-category exclusives, or fallback to featured when all category products are on page */}
+            {!loading && displayRelatedProducts.length > 0 && (
+              <div className="space-y-6 mt-8 pt-8 border-t border-gray-200">
+                <div className="flex items-center gap-4">
+                  <div className="w-4 h-8 bg-primary rounded" />
+                  <h2 className="text-2xl font-bold text-gray-900">Related Items</h2>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+                  {displayRelatedProducts.map((relatedProduct) => (
+                    <ProductCard
+                      key={relatedProduct.id}
+                      product={normalizeProductImages(relatedProduct)}
+                      showQuickAdd={true}
+                      className="w-full"
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

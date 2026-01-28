@@ -138,7 +138,7 @@ const CartItem: React.FC<CartItemProps> = ({
                 {product.name}
               </Link>
               {product.isSubaccountSet === false && (
-                <Badge variant="destructive" className="text-xs flex-shrink-0">
+                <Badge variant="destructive" className="text-xs flex-shrink-0 bg-red-50 text-red-600 border-red-200">
                   Product not available
                 </Badge>
               )}
@@ -183,7 +183,7 @@ const CartItem: React.FC<CartItemProps> = ({
               </span>
             )}
             {discount && (
-              <Badge variant="destructive" className="text-xs">
+              <Badge variant="destructive" className="text-xs bg-red-50 text-red-600 border-red-200">
                 -{discount.percentage}%
               </Badge>
             )}

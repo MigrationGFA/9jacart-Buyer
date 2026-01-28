@@ -14,6 +14,8 @@ interface Category {
 
 interface CategoriesSidebarProps {
   categories: Category[];
+  /** Show vertical line to the right (e.g. beside hero banner). Default false. */
+  showBorderRight?: boolean;
 }
 
 // Define subcategory service options
@@ -23,7 +25,7 @@ const subcategoryOptions: Record<string, string[]> = {
   // Add more subcategory options as needed
 };
 
-const CategoriesSidebar: React.FC<CategoriesSidebarProps> = ({ categories }) => {
+const CategoriesSidebar: React.FC<CategoriesSidebarProps> = ({ categories, showBorderRight = false }) => {
   const navigate = useNavigate();
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set()
@@ -167,7 +169,7 @@ const CategoriesSidebar: React.FC<CategoriesSidebarProps> = ({ categories }) => 
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:block lg:col-span-1 border-r border-gray-200">
+      <aside className={`hidden lg:block lg:col-span-1 ${showBorderRight ? "border-r border-gray-200" : ""}`}>
         <div className="sticky top-4">
           <div className="h-[240px] sm:h-[300px] md:h-[360px] lg:h-[420px] overflow-y-auto scroll-smooth scrollbar-thin">
             <ul className="space-y-2 lg:space-y-3 pr-4 lg:pr-6">

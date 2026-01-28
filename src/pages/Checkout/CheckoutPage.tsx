@@ -572,7 +572,7 @@ const CheckoutPage: React.FC = () => {
                     variant="outline"
                     className="w-full"
                     size="lg"
-                    onClick={() => setCheckoutAsGuest(true)}
+                    onClick={() => navigate("/")}
                   >
                     <UserPlus className="w-5 h-5 mr-2" />
                     Continue as Guest
@@ -582,7 +582,7 @@ const CheckoutPage: React.FC = () => {
                     Don't have an account?{" "}
                     <Link
                       to="/auth/register?redirect=/checkout"
-                      className="text-blue-600 hover:text-blue-500 font-medium"
+                      className="text-[#1E4700] hover:text-[#1E4700]/80 font-medium"
                     >
                       Create one now
                     </Link>
@@ -590,11 +590,11 @@ const CheckoutPage: React.FC = () => {
                 </div>
 
                 {/* Benefits of signing in */}
-                <div className="mt-8 p-4 bg-blue-50 rounded-lg text-left">
-                  <h4 className="font-medium text-blue-900 mb-2">
+                <div className="mt-8 p-4 bg-[#1E4700]/10 rounded-lg text-left">
+                  <h4 className="font-medium text-[#1E4700] mb-2">
                     Benefits of signing in:
                   </h4>
-                  <ul className="text-sm text-blue-700 space-y-1">
+                  <ul className="text-sm text-[#1E4700] space-y-1">
                     <li>• Faster checkout with saved information</li>
                     <li>• Order tracking and history</li>
                     <li>• Exclusive member offers</li>
@@ -625,14 +625,14 @@ const CheckoutPage: React.FC = () => {
                 You can{" "}
                 <Link
                   to="/auth/login?redirect=/checkout"
-                  className="text-blue-600 hover:text-blue-500 font-medium"
+                  className="text-[#1E4700] hover:text-[#1E4700]/80 font-medium"
                 >
                   sign in
                 </Link>{" "}
                 or{" "}
                 <Link
                   to="/auth/register?redirect=/checkout"
-                  className="text-blue-600 hover:text-blue-500 font-medium"
+                  className="text-[#1E4700] hover:text-[#1E4700]/80 font-medium"
                 >
                   create an account
                 </Link>{" "}
