@@ -217,6 +217,8 @@ export interface ProductSummary {
   categoryName?: string; // Category name from API for related products filtering
   // Optional tags for lightweight related-products logic
   tags?: string[];
+  description?: string; // Product description for card display
+  shortDescription?: string; // Short description snippet for card display
   price: PriceWithDiscount;
   inventory: Pick<Inventory, 'inStock' | 'status'>;
   images: Pick<ProductMedia, 'main' | 'alt'>;

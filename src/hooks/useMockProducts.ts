@@ -37,6 +37,8 @@ export const useProductList = () => {
           slug: product.slug,
           brand: product.brand,
           categoryId: product.categoryId,
+          description: product.description,
+          shortDescription: product.shortDescription,
           price: product.price,
           inventory: {
             inStock: product.inventory.inStock,

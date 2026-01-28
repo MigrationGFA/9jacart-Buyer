@@ -262,6 +262,8 @@ export const mapApiProductToProductSummary = (apiProduct: ApiProductData): Produ
     categoryId: apiProduct.categoryId,
     categoryName: apiProduct.categoryName, // Include category name for related products filtering
     tags: apiProduct.productTags,
+    description: apiProduct.productDescription, // Include full description
+    shortDescription: apiProduct.productDescription ? apiProduct.productDescription.substring(0, 150) + '...' : undefined, // Truncate for short description
     price,
     inventory,
     images,

@@ -197,6 +197,25 @@ const ProductCard: React.FC<ProductCardProps> = ({
     }).format(price);
   };
 
+  // Helper function to truncate description to a certain word count
+  const truncateDescription = (text: string, wordCount: number = 12): string => {
+    if (!text) return "";
+    const words = text.trim().split(/\s+/);
+    if (words.length <= wordCount) return text;
+    return words.slice(0, wordCount).join(" ") + "...";
+  };
+
+  // Get description text (prefer shortDescription, fallback to description)
+  const getDescriptionText = (): string => {
+    if ("shortDescription" in product && product.shortDescription) {
+      return product.shortDescription;
+    }
+    if ("description" in product && product.description) {
+      return product.description;
+    }
+    return "";
+  };
+
   const currentPrice =
     typeof product.price === "number" ? product.price : product.price.current;
   const originalPrice =
@@ -299,24 +318,17 @@ const ProductCard: React.FC<ProductCardProps> = ({
               background: 'linear-gradient(to bottom, #ffffff 0%, #ffffff 40%, #8deb6e1a 100%)'
             }}
           >
-            {/* Store Name */}
-            {product.storeName && (
-              <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">
-                {product.storeName}
-              </p>
-            )}
-
-            {/* Brand (fallback if no store name) */}
-            {!product.storeName && "brand" in product && product.brand && (
-              <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">
-                {product.brand}
-              </p>
-            )}
-
             {/* Product Name */}
             <h3 className="font-medium text-gray-900 hover:text-primary transition-colors line-clamp-2 text-sm sm:text-base leading-snug">
               {product.name}
             </h3>
+
+            {/* Description Snippet */}
+            {getDescriptionText() && (
+              <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 leading-relaxed">
+                {truncateDescription(getDescriptionText(), 12)}
+              </p>
+            )}
 
             {/* Reviews */}
             {displayReviews && displayReviews.total > 0 && (
