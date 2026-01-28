@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { Breadcrumb, Loading, Alert } from "../../components/UI";
 import ProductCard from "../../components/Product/ProductCard";
 import CategoriesSidebar from "../../components/HomePage/CategoriesSidebar";
+import RecentlyViewedProductsSection from "../../components/HomePage/RecentlyViewedProductsSection";
 import { useRealProductsList } from "../../hooks/api/useRealProducts";
 import { useAllRealCategories } from "../../hooks/api/useRealCategories";
 import { normalizeProductImages } from "@/lib/utils";
@@ -153,20 +154,24 @@ const SearchResultsPage: React.FC = () => {
                 )}
               </>
             ) : (
-              <div className="flex items-center justify-center min-h-[400px]">
-                <div className="text-center">
-                  <p className="text-gray-500 text-lg">
-                    {query
-                      ? `No products found for "${query}"`
-                      : "Enter a search term to find products"}
-                  </p>
-                  {query && (
-                    <p className="text-gray-400 mt-2">
-                      Try different keywords or browse all products
+              <>
+                <div className="flex items-center justify-center min-h-[400px]">
+                  <div className="text-center">
+                    <p className="text-gray-500 text-lg">
+                      {query
+                        ? `No products found for "${query}"`
+                        : "Enter a search term to find products"}
                     </p>
-                  )}
+                    {query && (
+                      <p className="text-gray-400 mt-2">
+                        Try different keywords or browse all products
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
+                {/* Recently Viewed when search has no results (no category = global) */}
+                <RecentlyViewedProductsSection variant="inline" />
+              </>
             )}
           </div>
         </div>

@@ -290,3 +290,90 @@ export const mapApiProductsToProducts = (apiProducts: ApiProductData[]): Product
     .filter((p) => p.isActive === '1')
     .map(mapApiProductToProduct);
 };
+
+/** Recently-viewed API product shape (currentPrice, productImages, vendor, etc.). */
+export type RecentlyViewedApiItem = Record<string, unknown> & {
+  productId?: string;
+  name?: string;
+  description?: string;
+  categoryId?: string;
+  categoryName?: string;
+  currentPrice?: number;
+  originalPrice?: number;
+  discountPrice?: number;
+  discountPercentage?: number;
+  hasDiscount?: boolean;
+  productImages?: string[];
+  stock?: number;
+  minStock?: number;
+  stockStatus?: string;
+  isAvailable?: boolean;
+  vendor?: { vendorId?: string; storeName?: string };
+  productTags?: string[];
+  vendorId?: string;
+  storeName?: string;
+  vendorLogo?: string;
+  createdAt?: string;
+};
+
+function mapStockStatus(status?: string): 'in_stock' | 'limited_stock' | 'out_of_stock' {
+  const s = String(status ?? '').toUpperCase();
+  if (s === 'OUT_OF_STOCK' || s === 'OUT OF STOCK') return 'out_of_stock';
+  if (s === 'LOW_STOCK' || s === 'LOW STOCK' || s === 'LIMITED_STOCK') return 'limited_stock';
+  return 'in_stock';
+}
+
+function mapRecentlyViewedItemToProductSummary(item: RecentlyViewedApiItem): ProductSummary {
+  const id = String(item.productId ?? item.id ?? '');
+  const name = String(item.name ?? item.productName ?? 'Product');
+  const desc = String(item.description ?? item.productDescription ?? '');
+  const currentPrice = typeof item.currentPrice === 'number' ? item.currentPrice : (parseFloat(String(item.currentPrice ?? '0')) || 0);
+  const originalPrice = typeof item.originalPrice === 'number' ? item.originalPrice : (parseFloat(String(item.originalPrice ?? '0')) || 0);
+  const discountPrice = typeof item.discountPrice === 'number' ? item.discountPrice : (parseFloat(String(item.discountPrice ?? '0')) || 0);
+  const discountPct = typeof item.discountPercentage === 'number' ? item.discountPercentage : (parseFloat(String(item.discountPercentage ?? '0')) || 0);
+  const hasDiscount = Boolean(item.hasDiscount) && (discountPrice > 0 || discountPct > 0);
+  const imgs = Array.isArray(item.productImages) ? item.productImages : (Array.isArray((item as any).images) ? (item as any).images : []);
+  const mainImg = imgs[0] || '/placeholder-product.jpg';
+  const inStock = item.isAvailable !== undefined ? Boolean(item.isAvailable) : (typeof item.stock === 'number' ? item.stock > 0 : true);
+  const status = mapStockStatus(item.stockStatus);
+  const vendor = item.vendor && typeof item.vendor === 'object' ? item.vendor as { vendorId?: string; storeName?: string } : null;
+  const vendorId = vendor?.vendorId ?? (item.vendorId != null ? String(item.vendorId) : undefined);
+  const storeName = vendor?.storeName ?? (item.storeName != null ? String(item.storeName) : undefined);
+
+  return {
+    id,
+    sku: id,
+    name,
+    slug: generateSlug(name),
+    brand: undefined,
+    categoryId: String(item.categoryId ?? ''),
+    categoryName: item.categoryName != null ? String(item.categoryName) : undefined,
+    tags: Array.isArray(item.productTags) ? item.productTags : undefined,
+    description: desc || undefined,
+    shortDescription: desc ? desc.slice(0, 150) + (desc.length > 150 ? '...' : '') : undefined,
+    price: {
+      current: hasDiscount && discountPrice > 0 ? discountPrice : currentPrice,
+      original: hasDiscount && originalPrice > 0 ? originalPrice : undefined,
+      currency: 'NGN',
+      discount: hasDiscount && (discountPct > 0 || (originalPrice > 0 && discountPrice > 0)) ? {
+        percentage: discountPct > 0 ? discountPct : (originalPrice > 0 ? Math.round(((originalPrice - discountPrice) / originalPrice) * 100) : 0),
+        amount: originalPrice > 0 && discountPrice > 0 ? originalPrice - discountPrice : 0,
+        validUntil: undefined,
+        code: undefined,
+      } : undefined,
+    },
+    inventory: { inStock, status },
+    images: { main: mainImg, alt: name },
+    reviews: { average: 4, total: 0 },
+    flags: { featured: false, newArrival: false, bestseller: false },
+    vendorId,
+    storeName,
+    vendorLogo: parseVendorLogo(item.vendorLogo as string | undefined),
+  };
+}
+
+export function mapRecentlyViewedToProductSummaries(
+  items: RecentlyViewedApiItem[]
+): ProductSummary[] {
+  return items.map(mapRecentlyViewedItemToProductSummary);
+}

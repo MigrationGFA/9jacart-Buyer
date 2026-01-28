@@ -22,10 +22,13 @@ import {
 } from "../../components/UI";
 import { useCart } from "../../hooks/useCart";
 import { useWishlistStore } from "../../store/useWishlistStore";
+import { useAuthStore } from "../../store/useAuthStore";
 import { useRealProduct, useRealProductsList } from "../../hooks/api/useRealProducts";
+import { productsApi } from "../../api/products";
 // import type { Product } from "../../types";
 import { cn, normalizeProductImages } from "../../lib/utils";
 import { ProductCard } from "@/components/Product";
+import RecentlyViewedProductsSection from "@/components/HomePage/RecentlyViewedProductsSection";
 import { useNotificationContext } from "../../providers/NotificationProvider";
 
 const ProductDetailPage: React.FC = () => {
@@ -33,6 +36,7 @@ const ProductDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { showNotification } = useNotificationContext();
+  const { isAuthenticated } = useAuthStore();
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isItemInWishlist } = useWishlistStore();
 
   // Use real API hook
@@ -75,6 +79,14 @@ const ProductDetailPage: React.FC = () => {
       }
     }
   }, [product]);
+
+  // Track product view for Recently Viewed (Bearer auth; fire-and-forget)
+  useEffect(() => {
+    if (!product?.id || !isAuthenticated) return;
+    productsApi.trackProductView(product.id).catch((err) => {
+      console.warn("Failed to track product view:", err);
+    });
+  }, [product?.id, isAuthenticated]);
 
   const handleAddToCart = async () => {
     if (!product) return;
@@ -836,6 +848,9 @@ const ProductDetailPage: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* Recently Viewed Products (below Related Items) */}
+        <RecentlyViewedProductsSection variant="inline" />
       </div>
     </div>
   );

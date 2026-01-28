@@ -1,0 +1,196 @@
+import React from "react";
+import { Link } from "react-router-dom";
+import { ChevronRight, Loader2 } from "lucide-react";
+import { Button } from "../UI";
+import ProductCard from "../Product/ProductCard";
+import { useRecentlyViewedProducts } from "../../hooks/api/useRecentlyViewedProducts";
+import { normalizeProductImages } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+
+export interface RecentlyViewedProductsSectionProps {
+  /** Optional category ID (e.g. from category page) */
+  categoryId?: string | null;
+  /** Optional vendor ID */
+  vendorId?: string | null;
+  /** Max number of products to show. Default 4. */
+  limit?: number;
+  /** Show quick-add on cards. Default true. */
+  showQuickAdd?: boolean;
+  /** 'inline' = same style as Related Items (border-t, compact). 'section' = standalone section like Featured (padding, View All). */
+  variant?: "inline" | "section";
+  /** Extra class for the wrapper */
+  className?: string;
+}
+
+const gridClass =
+  "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6";
+
+/**
+ * Recently Viewed Products section. Styled like Related Items.
+ * Always renders the section; content varies by auth and API state.
+ * - Not authenticated: "Sign in to see your recently viewed products" + CTA.
+ * - Loading: spinner + message.
+ * - Has products: product grid.
+ * - No products: "No recently viewed products yet" + View All.
+ */
+const RecentlyViewedProductsSection: React.FC<
+  RecentlyViewedProductsSectionProps
+> = ({
+  categoryId,
+  vendorId,
+  limit = 4,
+  showQuickAdd = true,
+  variant = "inline",
+  className,
+}) => {
+  const { products, loading, isAuthenticated } = useRecentlyViewedProducts({
+    categoryId,
+    vendorId,
+    limit,
+  });
+
+  const viewAllLink = (
+    <Link to="/products">
+      <Button
+        variant="outline"
+        className="flex items-center gap-2 hover:border-[#2ac12a]"
+      >
+        View All Products
+        <ChevronRight className="h-4 w-4" />
+      </Button>
+    </Link>
+  );
+
+  const signInLink = (
+    <Link
+      to="/auth/login"
+      className="font-medium text-[#1E4700] hover:text-[#1E4700]/80 underline"
+    >
+      Sign in
+    </Link>
+  );
+
+  const renderEmptyOrAuthState = () => {
+    if (!isAuthenticated) {
+      return (
+        <div className="py-8 sm:py-12 text-center">
+          <p className="text-muted-foreground text-base sm:text-lg">
+            Sign in to see your recently viewed products
+          </p>
+          <p className="mt-2 text-sm text-gray-500">
+            Already have an account? {signInLink}
+          </p>
+          <div className="mt-6 flex justify-center">{viewAllLink}</div>
+        </div>
+      );
+    }
+    if (loading) {
+      return (
+        <div className="flex flex-col items-center justify-center py-8 sm:py-12 gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <span className="text-muted-foreground text-sm sm:text-base">
+            Loading recently viewed...
+          </span>
+        </div>
+      );
+    }
+    return (
+      <div className="py-8 sm:py-12 text-center">
+        <p className="text-muted-foreground text-base sm:text-lg">
+          No recently viewed products yet
+        </p>
+        <p className="mt-1 text-sm text-gray-500">
+          Browse our catalog to start building your list
+        </p>
+        <div className="mt-6 flex justify-center">{viewAllLink}</div>
+      </div>
+    );
+  };
+
+  const sectionHeader = (
+    <div className="flex items-center gap-4">
+      <div className="w-4 h-8 bg-primary rounded" />
+      <h2 className="text-2xl font-bold text-gray-900">
+        Recently Viewed Products
+      </h2>
+    </div>
+  );
+
+  const sectionSubtitle = (
+    <p className="text-muted-foreground mt-1">Pick up where you left off</p>
+  );
+
+  if (variant === "section") {
+    return (
+      <section
+        className={cn("py-16 bg-white", className)}
+        data-section="recently-viewed-products"
+      >
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between mb-12">
+            <div>
+              <div className="mb-4">{sectionHeader}</div>
+              {sectionSubtitle}
+            </div>
+            {isAuthenticated && products.length > 0 && (
+              <div className="hidden sm:block">{viewAllLink}</div>
+            )}
+          </div>
+
+          {loading && isAuthenticated ? (
+            renderEmptyOrAuthState()
+          ) : products.length > 0 ? (
+            <>
+              <div className={gridClass}>
+                {products.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={normalizeProductImages(product)}
+                    showQuickAdd={showQuickAdd}
+                    className="w-full"
+                  />
+                ))}
+              </div>
+              <div className="flex justify-center mt-8 sm:hidden">
+                {viewAllLink}
+              </div>
+            </>
+          ) : (
+            renderEmptyOrAuthState()
+          )}
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <div
+      className={cn(
+        "space-y-6 mt-8 pt-8 border-t border-gray-200",
+        className
+      )}
+      data-section="recently-viewed-products"
+    >
+      {sectionHeader}
+
+      {loading && isAuthenticated ? (
+        renderEmptyOrAuthState()
+      ) : products.length > 0 ? (
+        <div className={gridClass}>
+          {products.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={normalizeProductImages(product)}
+              showQuickAdd={showQuickAdd}
+              className="w-full"
+            />
+          ))}
+        </div>
+      ) : (
+        renderEmptyOrAuthState()
+      )}
+    </div>
+  );
+};
+
+export default RecentlyViewedProductsSection;

@@ -103,4 +103,12 @@ export const productsApi = {
 
     return apiClient.get<ProductsListResponse>(endpoint, undefined, false); // Use Basic Auth
   },
+
+  /**
+   * Track product view for recently-viewed recommendations.
+   * POST /product/:productId/track-view. Requires Bearer token. No response body.
+   */
+  trackProductView: async (productId: string): Promise<void> => {
+    return apiClient.postNoBody(`/product/${productId}/track-view`, true);
+  },
 };

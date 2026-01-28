@@ -3,6 +3,7 @@ import { Search } from 'lucide-react';
 import { Breadcrumb, Loading, Alert } from '../../components/UI';
 import ProductCard from '../../components/Product/ProductCard';
 import CategoriesSidebar from '../../components/HomePage/CategoriesSidebar';
+import RecentlyViewedProductsSection from '../../components/HomePage/RecentlyViewedProductsSection';
 import { useBuyerActiveProductsList } from '../../hooks/api/useRealProducts';
 import { useAllRealCategories } from '../../hooks/api/useRealCategories';
 import { normalizeProductImages } from '@/lib/utils';
@@ -179,6 +180,9 @@ const ProductsPage: React.FC = () => {
                 </div>
               </div>
             )}
+
+            {/* Recently Viewed Products (inline, like Related Items; no category filter = global) */}
+            {!loading && <RecentlyViewedProductsSection variant="inline" />}
           </div>
         </div>
       </div>

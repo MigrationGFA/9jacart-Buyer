@@ -3,6 +3,7 @@ import { useLocation, useParams, Navigate } from "react-router-dom";
 import { Breadcrumb, Loading, Alert } from "../../components/UI";
 import ProductCard from "../../components/Product/ProductCard";
 import CategoriesSidebar from "../../components/HomePage/CategoriesSidebar";
+import RecentlyViewedProductsSection from "../../components/HomePage/RecentlyViewedProductsSection";
 import { useRealProductsByCategory, useFeaturedProducts } from "../../hooks/api/useRealProducts";
 import { useAllRealCategories } from "../../hooks/api/useRealCategories";
 import { normalizeProductImages } from "@/lib/utils";
@@ -194,6 +195,9 @@ const CategoryPage: React.FC = () => {
                 </div>
               </div>
             )}
+
+            {/* Recently Viewed Products (inline, like Related Items; global, no category filter) */}
+            {!loading && <RecentlyViewedProductsSection variant="inline" />}
 
             {/* Related Items: same-category exclusives, or fallback to featured when all category products are on page */}
             {!loading && displayRelatedProducts.length > 0 && (

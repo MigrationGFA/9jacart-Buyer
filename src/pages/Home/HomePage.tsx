@@ -3,6 +3,7 @@ import HeroSection from "@/components/HomePage/HeroSection";
 import FeaturedProducts from "@/components/HomePage/FeaturedProducts";
 import LiveProducts from "@/components/HomePage/LiveProducts";
 import CategoryShowcase from "@/components/HomePage/CategoryShowcase";
+import RecentlyViewedProductsSection from "@/components/HomePage/RecentlyViewedProductsSection";
 // import Newsletter from "@/components/HomePage/Newsletter";
 import React from "react";
 
@@ -17,6 +18,9 @@ const HomePage: React.FC = () => {
 
       {/* Category Showcase */}
       <CategoryShowcase />
+
+      {/* Recently Viewed Products (above Featured) */}
+      <RecentlyViewedProductsSection variant="section" />
 
       {/* Featured Products (Mock Data) */}
       <FeaturedProducts />

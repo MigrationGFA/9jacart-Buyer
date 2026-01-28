@@ -6,7 +6,6 @@ import {
   Shield,
   AlertCircle,
   User,
-  UserPlus,
   Plus,
 } from "lucide-react";
 import {
@@ -66,7 +65,7 @@ const CheckoutPage: React.FC = () => {
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>(
     []
   );
-  const [checkoutAsGuest, setCheckoutAsGuest] = useState(false);
+  const [checkoutAsGuest] = useState(false);
 
   // Address management state
   const [showAddressForm, setShowAddressForm] = useState(false);
@@ -556,26 +555,18 @@ const CheckoutPage: React.FC = () => {
                   Sign in to checkout
                 </h2>
                 <p className="text-gray-600 mb-8">
-                  Sign in to your account for a faster checkout experience, or
-                  continue as a guest.
+                  Sign in to your account for a faster checkout experience.
                 </p>
 
                 <div className="space-y-4">
                   <Button asChild className="w-full" size="lg">
-                    <Link to="/auth/login?redirect=/checkout" className="flex items-center justify-center">
+                    <Link
+                      to="/auth/login?redirect=/checkout"
+                      className="flex items-center justify-center"
+                    >
                       <User className="w-5 h-5 mr-2" />
                       Sign In to Your Account
                     </Link>
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    size="lg"
-                    onClick={() => navigate("/")}
-                  >
-                    <UserPlus className="w-5 h-5 mr-2" />
-                    Continue as Guest
                   </Button>
 
                   <div className="text-sm text-gray-500">
