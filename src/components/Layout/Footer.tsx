@@ -71,7 +71,7 @@ const Footer: React.FC = () => {
 
         {/* Bottom Section */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 border-t border-gray-600 pt-6 lg:pt-8">
-          {/* Logo and Contact Info */}
+          {/* Logo, Contact Info & Social Media */}
           <div className="lg:col-span-1">
             <div className="flex items-center mb-4">
               <img src={logoImage} alt="9ja-cart" className="h-8 w-auto" />
@@ -94,6 +94,21 @@ const Footer: React.FC = () => {
                 <span>info@9jacarts.com</span>
               </p>
             </div>
+            {/* Social Media Icons */}
+            <div className="flex gap-4 mt-4">
+              <a href="#" className="text-gray-300 hover:text-white transition-colors" aria-label="Facebook">
+                <Facebook className="w-5 h-5" />
+              </a>
+              <a href="#" className="text-gray-300 hover:text-white transition-colors" aria-label="Twitter">
+                <Twitter className="w-5 h-5" />
+              </a>
+              <a href="#" className="text-gray-300 hover:text-white transition-colors" aria-label="Instagram">
+                <Instagram className="w-5 h-5" />
+              </a>
+              <a href="#" className="text-gray-300 hover:text-white transition-colors" aria-label="LinkedIn">
+                <Linkedin className="w-5 h-5" />
+              </a>
+            </div>
           </div>
 
 
@@ -109,30 +124,16 @@ const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Quick Link */}
+          {/* Quick Links */}
           <div>
-            <h4 className="text-white font-semibold mb-4">Quick Link</h4>
-            <ul className="space-y-2 text-sm mb-4">
+            <h4 className="text-white font-semibold mb-4">Quick Links</h4>
+            <ul className="space-y-2 text-sm">
               <li><Link to="/privacy" className="text-gray-300 hover:text-white transition-colors">Privacy Policy</Link></li>
               <li><Link to="/terms-of-use" className="text-gray-300 hover:text-white transition-colors">Terms Of Use</Link></li>
-              {/* <li><Link to="/faq" className="text-gray-300 hover:text-white transition-colors">FAQ</Link></li> */}
+              <li><Link to="/shipping-return-policy" className="text-gray-300 hover:text-white transition-colors">Shipping and return policy</Link></li>
+              <li><Link to="/refund-policy" className="text-gray-300 hover:text-white transition-colors">Refund Policy</Link></li>
+              <li><Link to="/dispute-policy" className="text-gray-300 hover:text-white transition-colors">Dispute Policy</Link></li>
             </ul>
-            
-            {/* Social Media Icons */}
-            <div className="flex gap-4">
-              <a href="#" className="text-gray-300 hover:text-white transition-colors">
-                <Facebook className="w-5 h-5" />
-              </a>
-              <a href="#" className="text-gray-300 hover:text-white transition-colors">
-                <Twitter className="w-5 h-5" />
-              </a>
-              <a href="#" className="text-gray-300 hover:text-white transition-colors">
-                <Instagram className="w-5 h-5" />
-              </a>
-              <a href="#" className="text-gray-300 hover:text-white transition-colors">
-                <Linkedin className="w-5 h-5" />
-              </a>
-            </div>
           </div>
 
         </div>

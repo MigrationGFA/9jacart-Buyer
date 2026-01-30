@@ -323,12 +323,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
               {product.name}
             </h3>
 
-            {/* Description Snippet */}
-            {getDescriptionText() && (
-              <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 leading-relaxed">
-                {truncateDescription(getDescriptionText(), 12)}
-              </p>
-            )}
+            {/* Description Snippet - Fixed 2-line height for uniform card layout */}
+            <div className="min-h-[2.5rem] sm:min-h-[2.75rem]">
+              {getDescriptionText() && (
+                <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 leading-relaxed">
+                  {truncateDescription(getDescriptionText(), 12)}
+                </p>
+              )}
+            </div>
 
             {/* Reviews */}
             {displayReviews && displayReviews.total > 0 && (

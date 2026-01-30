@@ -29,6 +29,29 @@ export interface GoogleLoginRequest {
   accessToken: string; // Access Token (same as idToken for Google OAuth)
 }
 
+export interface ForgotPasswordRequest {
+  emailAddress: string;
+}
+
+export interface ForgotPasswordResponse {
+  status: number;
+  error: boolean;
+  message: string;
+  data?: {
+    identifier: string;
+    verificationId?: string;
+    messageId?: string | null;
+  };
+}
+
+export interface ResetPasswordRequest {
+  otp: string;
+  identifier: string;
+  verificationId: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}
+
 // Auth API response types
 export interface LoginSuccessResponse {
   status: number;
@@ -110,6 +133,16 @@ export const authApi = {
   // Google login endpoint
   googleLogin: async (googleData: GoogleLoginRequest): Promise<LoginSuccessResponse> => {
     return apiClient.post<LoginSuccessResponse>('/buyer/google-login', googleData);
+  },
+
+  // Forgot password (buyer; sends OTP to email; returns identifier and verificationId for reset step)
+  forgotPassword: async (payload: ForgotPasswordRequest): Promise<ForgotPasswordResponse> => {
+    return apiClient.post<ForgotPasswordResponse>('/buyer/forgot-password', payload, undefined, false);
+  },
+
+  // Reset password (buyer; requires OTP from forgot-password step; no response body on success)
+  resetPassword: async (payload: ResetPasswordRequest): Promise<void> => {
+    return apiClient.postWithEmptyResponse('/buyer/reset-password', payload, false);
   },
 
   // Logout (if needed for server-side logout)

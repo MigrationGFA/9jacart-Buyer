@@ -179,7 +179,7 @@ import WishlistPage from "../pages/Account/WishlistPage";
 import ContactAdminPage from "../pages/Account/ContactAdminPage";
 
 // Auth pages
-import { LoginPage, RegisterPage, RegistrationSuccessPage, VerifyEmailPage } from "../pages/Auth";
+import { LoginPage, RegisterPage, RegistrationSuccessPage, ResetPasswordPage, VerifyEmailPage } from "../pages/Auth";
 
 // Support pages
 import ContactPage from "../pages/Support/ContactPage";
@@ -187,6 +187,9 @@ import FAQPage from "../pages/Support/FAQPage";
 import TermsPage from "../pages/Support/TermsPage";
 import PrivacyPolicyPage from "../pages/Support/PrivacyPolicyPage";
 import TermsOfUsePage from "../pages/Support/TermsOfUsePage";
+import ShippingReturnPolicyPage from "../pages/Support/ShippingReturnPolicyPage";
+import RefundPolicyPage from "../pages/Support/RefundPolicyPage";
+import DisputePolicyPage from "../pages/Support/DisputePolicyPage";
 
 // Additional pages
 import CategoryPage from "../pages/Categories/CategoryPage";
@@ -354,6 +357,18 @@ const router = createBrowserRouter([
         element: <TermsOfUsePage />,
       },
       {
+        path: "shipping-return-policy",
+        element: <ShippingReturnPolicyPage />,
+      },
+      {
+        path: "refund-policy",
+        element: <RefundPolicyPage />,
+      },
+      {
+        path: "dispute-policy",
+        element: <DisputePolicyPage />,
+      },
+      {
         path: "about",
         element: <AboutPage />,
       },
@@ -407,6 +422,10 @@ const router = createBrowserRouter([
       {
         path: "registration-success",
         element: <RegistrationSuccessPage />,
+      },
+      {
+        path: "reset-password",
+        element: <ResetPasswordPage />,
       },
       {
         path: "verify-email",

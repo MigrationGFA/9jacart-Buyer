@@ -355,29 +355,44 @@ const VendorStorefrontPage: React.FC = () => {
           </div>
         </div>
 
-        {/* 3. All Products (active) - Only show when no filters are applied */}
-        {vendorProducts.length > 0 && !selectedCategory && !searchQuery.trim() && (
+        {/* 3. Fast Selling Grid - Only show when no filters are applied (above All vendor Products) */}
+        {bestSellers.length > 0 && !selectedCategory && !searchQuery.trim() && (
           <div className="mb-10">
-            <h3 className="text-lg font-bold text-[#182F38] mb-4">
-              All Products
-            </h3>
+            <div className="mb-4">
+              <div className="flex items-center">
+                <div className="w-4 h-10 rounded bg-primary mr-2 flex-shrink-0" />
+                <h3 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                  Fast Selling
+                </h3>
+              </div>
+              <p className="text-muted-foreground mt-2 ml-6">
+                Popular items selling out quickly
+              </p>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
-              {(sortBy === "default" ? vendorProducts : sortProducts([...vendorProducts], sortBy)).map((product) => (
+              {sortedBestSellers.slice(0, 4).map((product) => (
                 <ProductCard key={product.id} product={normalizeProductImages(product)} />
               ))}
             </div>
           </div>
         )}
 
-        {/* 4. Best Sellers Grid - Only show when no filters are applied */}
-        {bestSellers.length > 0 && !selectedCategory && !searchQuery.trim() && (
+        {/* 4. All vendor Products (active) - Only show when no filters are applied */}
+        {vendorProducts.length > 0 && !selectedCategory && !searchQuery.trim() && (
           <div className="mb-10">
-            <h3 className="text-lg font-bold text-[#182F38] mb-4 flex items-center gap-2">
-              <Star className="w-5 h-5 text-yellow-500 fill-current" />
-              Best Sellers
-            </h3>
+            <div className="mb-4">
+              <div className="flex items-center">
+                <div className="w-4 h-10 rounded bg-primary mr-2 flex-shrink-0" />
+                <h3 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                  All vendor Products
+                </h3>
+              </div>
+              <p className="text-muted-foreground mt-2 ml-6">
+                Explore everything from {vendorInfo?.name ?? "this"} Store
+              </p>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
-              {sortedBestSellers.slice(0, 4).map((product) => (
+              {(sortBy === "default" ? vendorProducts : sortProducts([...vendorProducts], sortBy)).map((product) => (
                 <ProductCard key={product.id} product={normalizeProductImages(product)} />
               ))}
             </div>

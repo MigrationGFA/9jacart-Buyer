@@ -23,12 +23,12 @@ const FeaturedProducts: React.FC = () => {
             <div className="flex items-center justify-center mb-4">
               <div className="w-4 h-10 rounded bg-primary mr-2"></div>
               <h2 className="text-3xl font-bold text-foreground">
-                Featured Products
+                Featured Picks
               </h2>
             </div>
             <div className="text-center">
               <p className="text-muted-foreground">
-                Loading our handpicked selection of premium items
+                Handpicked products you don't want to miss
               </p>
             </div>
           </div>
@@ -52,12 +52,12 @@ const FeaturedProducts: React.FC = () => {
             <div className="flex items-center justify-center mb-4">
               <div className="w-4 h-10 rounded bg-primary mr-2"></div>
               <h2 className="text-3xl font-bold text-foreground">
-                Featured Products
+                Featured Picks
               </h2>
             </div>
             <div className="text-center">
               <p className="text-muted-foreground">
-                Error loading our featured products
+                Error loading our featured picks
               </p>
             </div>
           </div>
@@ -84,11 +84,11 @@ const FeaturedProducts: React.FC = () => {
             <div className="flex items-center mb-4">
               <div className="w-4 h-10 rounded bg-primary mr-2"></div>
               <h2 className="text-3xl font-bold text-foreground">
-                Featured Products
+                Featured Picks
               </h2>
             </div>
             <p className="text-muted-foreground">
-              Discover our handpicked selection of premium items
+              Handpicked products you don't want to miss
             </p>
           </div>
 

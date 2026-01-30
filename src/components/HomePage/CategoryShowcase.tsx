@@ -107,11 +107,11 @@ const CategoryShowcase: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <div className="flex items-center mb-2">
-                <div className="w-4 h-10 rounded bg-primary mr-2"></div>
-                <p className="text-primary font-semibold text-sm">Categories</p>
+              <div className="flex items-center">
+                <div className="w-4 h-10 rounded bg-primary mr-2 flex-shrink-0"></div>
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Shop by Category</h2>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Browse By Category</h2>
+              <p className="text-muted-foreground mt-2 ml-6">Find best-selling products fast</p>
             </div>
           </div>
           
@@ -130,11 +130,11 @@ const CategoryShowcase: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <div className="flex items-center mb-2">
-                <div className="w-4 h-10 rounded bg-primary mr-2"></div>
-                <p className="text-primary font-semibold text-sm">Categories</p>
+              <div className="flex items-center">
+                <div className="w-4 h-10 rounded bg-primary mr-2 flex-shrink-0"></div>
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Shop by Category</h2>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Browse By Category</h2>
+              <p className="text-muted-foreground mt-2 ml-6">Find best-selling products fast</p>
             </div>
           </div>
           
@@ -156,18 +156,18 @@ const CategoryShowcase: React.FC = () => {
       <section className="py-8 sm:py-12 lg:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-8">
-            <div>
-              <div className="flex items-center mb-2">
-                <div className="w-4 h-10 rounded bg-primary mr-2"></div>
-                <p className="text-primary font-semibold text-sm">Categories</p>
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Browse By Category</h2>
+          <div>
+            <div className="flex items-center">
+              <div className="w-4 h-10 rounded bg-primary mr-2 flex-shrink-0"></div>
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Shop by Category</h2>
             </div>
+            <p className="text-muted-foreground mt-2 ml-6">Find best-selling products fast</p>
           </div>
-          
-          <div className="text-center py-12">
-            <p className="text-gray-500">No categories available at the moment.</p>
-          </div>
+        </div>
+        
+        <div className="text-center py-12">
+          <p className="text-gray-500">No categories available at the moment.</p>
+        </div>
         </div>
       </section>
     );
@@ -179,11 +179,11 @@ const CategoryShowcase: React.FC = () => {
         {/* Section Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <div className="flex items-center mb-2">
-              <div className="w-4 h-10 rounded bg-primary mr-2"></div>
-              <p className="text-primary font-semibold text-sm">Categories</p>
+            <div className="flex items-center">
+              <div className="w-4 h-10 rounded bg-primary mr-2 flex-shrink-0"></div>
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Shop by Category</h2>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Browse By Category</h2>
+            <p className="text-muted-foreground mt-2 ml-6">Find best-selling products fast</p>
           </div>
 
           {/* Navigation Arrows */}

@@ -1,5 +1,3 @@
-import CountdownTimer from "./CountdownTimer";
-
 import SectionHeader from "../UI/SectionHeader";
 import { useRealProductsList } from "../../hooks/api/useRealProducts";
 import { ProductCard } from "../Product";
@@ -24,18 +22,14 @@ export default function FlashSales() {
     return (
       <section className="py-8 sm:py-12 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col lg:flex-row lg:items-end gap-4 lg:gap-10 mb-8">
-            <div className="flex-shrink-0">
-              <SectionHeader title="Today's" text="Flash Sales" />
-            </div>
-            <div className="flex justify-center lg:justify-start">
-              <CountdownTimer targetDate={new Date("2025-12-31T23:59:59Z")} />
-            </div>
+          <div className="mb-8">
+            <SectionHeader text="Fast Selling" />
+            <p className="text-muted-foreground mt-2 ml-6">Popular items selling out quickly</p>
           </div>
 
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <span className="ml-2 text-muted-foreground">Loading flash sale products...</span>
+            <span className="ml-2 text-muted-foreground">Loading fast selling products...</span>
           </div>
         </div>
       </section>
@@ -46,13 +40,9 @@ export default function FlashSales() {
     return (
       <section className="py-8 sm:py-12 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col lg:flex-row lg:items-end gap-4 lg:gap-10 mb-8">
-            <div className="flex-shrink-0">
-              <SectionHeader title="Today's" text="Flash Sales" />
-            </div>
-            <div className="flex justify-center lg:justify-start">
-              <CountdownTimer targetDate={new Date("2025-12-31T23:59:59Z")} />
-            </div>
+          <div className="mb-8">
+            <SectionHeader text="Fast Selling" />
+            <p className="text-muted-foreground mt-2 ml-6">Popular items selling out quickly</p>
           </div>
 
           <Alert variant="destructive" className="max-w-md mx-auto">
@@ -72,18 +62,9 @@ export default function FlashSales() {
     <section className="py-8 sm:py-12 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header Section */}
-        <div className="flex flex-col lg:flex-row lg:items-end gap-4 lg:gap-10 mb-8">
-          <div className="flex-shrink-0">
-            <SectionHeader title="Today's" text="Flash Sales" />
-          </div>
-
-          {/* Countdown Timer - Responsive positioning */}
-          <div className="flex justify-center lg:justify-start">
-            {/* <div className="bg-gray-100 rounded-xl p-3 sm:p-4"> */}
-             
-              <CountdownTimer targetDate={new Date("2025-12-31T23:59:59Z")} />
-            {/* </div> */}
-          </div>
+        <div className="mb-8">
+          <SectionHeader text="Fast Selling" />
+          <p className="text-muted-foreground mt-2 ml-6">Popular items selling out quickly</p>
         </div>
 
         {/* Product Grid - Improved responsive layout */}
@@ -110,7 +91,7 @@ export default function FlashSales() {
           </>
         ) : (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No flash sale products available at the moment</p>
+            <p className="text-gray-500 text-lg">No fast selling products available at the moment</p>
             <div className="flex justify-center mt-6">
               <Link to="/products">
                 <Button className="px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-base">

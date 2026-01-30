@@ -111,13 +111,13 @@ const RecentlyViewedProductsSection: React.FC<
     <div className="flex items-center gap-4">
       <div className="w-4 h-8 bg-primary rounded" />
       <h2 className="text-2xl font-bold text-gray-900">
-        Recently Viewed Products
+        Recently Viewed
       </h2>
     </div>
   );
 
   const sectionSubtitle = (
-    <p className="text-muted-foreground mt-1">Pick up where you left off</p>
+    <p className="text-muted-foreground mt-1">Your recently viewed items are waiting</p>
   );
 
   if (variant === "section") {

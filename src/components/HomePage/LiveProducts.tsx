@@ -23,10 +23,10 @@ const LiveProducts: React.FC = () => {
           <div className="mb-12">
             <div className="flex items-center justify-center mb-4">
               <div className="w-4 h-10 rounded bg-primary mr-2"></div>
-              <h2 className="text-3xl font-bold text-foreground">All Live Products</h2>
+              <h2 className="text-3xl font-bold text-foreground">All Products</h2>
             </div>
             <div className="text-center">
-              <p className="text-muted-foreground">Loading complete inventory from our live API</p>
+              <p className="text-muted-foreground">Explore everything available — updated in real time</p>
             </div>
           </div>
           
@@ -46,10 +46,10 @@ const LiveProducts: React.FC = () => {
           <div className="mb-12">
             <div className="flex items-center justify-center mb-4">
               <div className="w-4 h-10 rounded bg-primary mr-2"></div>
-              <h2 className="text-3xl font-bold text-foreground">All Live Products</h2>
+              <h2 className="text-3xl font-bold text-foreground">All Products</h2>
             </div>
             <div className="text-center">
-              <p className="text-muted-foreground">Error loading products from our live API</p>
+              <p className="text-muted-foreground">Error loading products</p>
             </div>
           </div>
           
@@ -73,10 +73,10 @@ const LiveProducts: React.FC = () => {
           <div className="mb-12">
             <div className="flex items-center justify-center mb-4">
               <div className="w-4 h-10 rounded bg-primary mr-2"></div>
-              <h2 className="text-3xl font-bold text-foreground">All Live Products</h2>
+              <h2 className="text-3xl font-bold text-foreground">All Products</h2>
             </div>
             <div className="text-center">
-              <p className="text-muted-foreground">Complete inventory from our live API</p>
+              <p className="text-muted-foreground">Explore everything available — updated in real time</p>
             </div>
           </div>
           
@@ -96,9 +96,9 @@ const LiveProducts: React.FC = () => {
           <div>
             <div className="flex items-center mb-4">
               <div className="w-4 h-10 rounded bg-primary mr-2"></div>
-              <h2 className="text-3xl font-bold text-foreground">All Live Products</h2>
+              <h2 className="text-3xl font-bold text-foreground">All Products</h2>
             </div>
-            <p className="text-muted-foreground">Complete inventory from our live API - All available products</p>
+            <p className="text-muted-foreground">Explore everything available — updated in real time</p>
           </div>
           
           <Link to="/products">
